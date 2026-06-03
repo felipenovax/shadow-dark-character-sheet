@@ -1,0 +1,217 @@
+// types
+import type {
+  AbilityKey,
+  Alignment,
+  Character,
+} from '@/types/character';
+
+// utils
+import { createId } from '@/utils/createId';
+
+export const STORAGE_KEY = 'shadow-dark:roster:v1';
+
+export const EQUIPMENT_SLOT_COUNT = 20;
+
+export const ABILITY_ORDER: AbilityKey[] = [
+  'for',
+  'des',
+  'con',
+  'int',
+  'sab',
+  'car',
+];
+
+export const ABILITY_LABELS: Record<AbilityKey, string> = {
+  for: 'Força',
+  des: 'Destreza',
+  con: 'Constituição',
+  int: 'Inteligência',
+  sab: 'Sabedoria',
+  car: 'Carisma',
+};
+
+export const CLASS_OPTIONS: { value: string; label: string }[] = [
+  { value: 'Guerreiro', label: 'Guerreiro' },
+  { value: 'Ladrão', label: 'Ladrão' },
+  { value: 'Clérigo', label: 'Clérigo' },
+  { value: 'Mago', label: 'Mago' },
+];
+
+export const ANCESTRY_OPTIONS: { value: string; label: string }[] = [
+  { value: 'Anão', label: 'Anão' },
+  { value: 'Humano', label: 'Humano' },
+  { value: 'Elfo', label: 'Elfo' },
+  { value: 'Goblin', label: 'Goblin' },
+  { value: 'Halfling', label: 'Halfling' },
+  { value: 'Meio-Orc', label: 'Meio-Orc' },
+];
+
+export const ALIGNMENT_OPTIONS: { value: Alignment; label: string }[] = [
+  { value: 'Lawful', label: 'Ordeiro' },
+  { value: 'Neutral', label: 'Neutro' },
+  { value: 'Chaotic', label: 'Caótico' },
+];
+
+type ClassTitle = { levelRange: string; title: string };
+
+// Títulos por classe → alinhamento → faixa de nível (Shadow Dark).
+export const CLASS_TITLES: Record<string, Record<Alignment, ClassTitle[]>> = {
+  Guerreiro: {
+    Lawful: [
+      { levelRange: '1-2', title: 'Escudeiro' },
+      { levelRange: '3-4', title: 'Ginete' },
+      { levelRange: '5-6', title: 'Cavaleiro' },
+      { levelRange: '7-8', title: 'Barão' },
+      { levelRange: '9-10', title: 'Lorde/Dama' },
+    ],
+    Chaotic: [
+      { levelRange: '1-2', title: 'Valete' },
+      { levelRange: '3-4', title: 'Bandido' },
+      { levelRange: '5-6', title: 'Matador' },
+      { levelRange: '7-8', title: 'Saqueador' },
+      { levelRange: '9-10', title: 'Senhor da Guerra' },
+    ],
+    Neutral: [
+      { levelRange: '1-2', title: 'Guerreiro' },
+      { levelRange: '3-4', title: 'Bárbaro' },
+      { levelRange: '5-6', title: 'Berserk' },
+      { levelRange: '7-8', title: 'Chefe de Guerra' },
+      { levelRange: '9-10', title: 'Líder' },
+    ],
+  },
+  Ladrão: {
+    Lawful: [
+      { levelRange: '1-2', title: 'Malandro' },
+      { levelRange: '3-4', title: 'Assaltante' },
+      { levelRange: '5-6', title: 'Trapaceiro' },
+      { levelRange: '7-8', title: 'Subchefe' },
+      { levelRange: '9-10', title: 'Chefe' },
+    ],
+    Chaotic: [
+      { levelRange: '1-2', title: 'Rufião' },
+      { levelRange: '3-4', title: 'Degolador' },
+      { levelRange: '5-6', title: 'Sombra' },
+      { levelRange: '7-8', title: 'Assassino' },
+      { levelRange: '9-10', title: 'Fantasma' },
+    ],
+    Neutral: [
+      { levelRange: '1-2', title: 'Bandoleiro' },
+      { levelRange: '3-4', title: 'Fora da Lei' },
+      { levelRange: '5-6', title: 'Ladino' },
+      { levelRange: '7-8', title: 'Renegado' },
+      { levelRange: '9-10', title: 'Rei/Rainha dos Bandidos' },
+    ],
+  },
+  Clérigo: {
+    Lawful: [
+      { levelRange: '1-2', title: 'Acólito' },
+      { levelRange: '3-4', title: 'Cruzado' },
+      { levelRange: '5-6', title: 'Templário' },
+      { levelRange: '7-8', title: 'Campeão' },
+      { levelRange: '9-10', title: 'Paladino' },
+    ],
+    Chaotic: [
+      { levelRange: '1-2', title: 'Iniciado' },
+      { levelRange: '3-4', title: 'Fanático' },
+      { levelRange: '5-6', title: 'Cultista' },
+      { levelRange: '7-8', title: 'Carrasco' },
+      { levelRange: '9-10', title: 'Cavaleiro do Caos' },
+    ],
+    Neutral: [
+      { levelRange: '1-2', title: 'Rastreador' },
+      { levelRange: '3-4', title: 'Invocador' },
+      { levelRange: '5-6', title: 'Arúspice' },
+      { levelRange: '7-8', title: 'Místico' },
+      { levelRange: '9-10', title: 'Oráculo' },
+    ],
+  },
+  Mago: {
+    Lawful: [
+      { levelRange: '1-2', title: 'Aprendiz' },
+      { levelRange: '3-4', title: 'Conjurador' },
+      { levelRange: '5-6', title: 'Arcanista' },
+      { levelRange: '7-8', title: 'Magista' },
+      { levelRange: '9-10', title: 'Arquimago' },
+    ],
+    Chaotic: [
+      { levelRange: '1-2', title: 'Adepto' },
+      { levelRange: '3-4', title: 'Canalizador' },
+      { levelRange: '5-6', title: 'Bruxo' },
+      { levelRange: '7-8', title: 'Diabolista' },
+      { levelRange: '9-10', title: 'Feiticeiro' },
+    ],
+    Neutral: [
+      { levelRange: '1-2', title: 'Xamã' },
+      { levelRange: '3-4', title: 'Vidente' },
+      { levelRange: '5-6', title: 'Guardião' },
+      { levelRange: '7-8', title: 'Sábio' },
+      { levelRange: '9-10', title: 'Druida' },
+    ],
+  },
+};
+
+const TITLE_TIER_COUNT = 5;
+
+const clamp = (value: number, min: number, max: number): number => {
+  return Math.min(Math.max(value, min), max);
+};
+
+const BASE_XP_THRESHOLD = 10;
+
+// XP necessário para subir do nível atual para o próximo.
+// Regra: dobra a cada nível → 10 (1→2), 20 (2→3), 40 (3→4)...
+export const getXpThreshold = (level: number): number => {
+  const safeLevel = Math.max(level, 1);
+
+  return BASE_XP_THRESHOLD * 2 ** (safeLevel - 1);
+};
+
+// Título único correspondente à classe + alinhamento + faixa do nível atual.
+// Faixas: 1-2, 3-4, 5-6, 7-8, 9-10 → índice = ceil(nível / 2), limitado a [1, 5].
+export const getMatchingTitle = (
+  className: string,
+  alignment: Alignment,
+  level: number,
+): string => {
+  const tierIndex = clamp(Math.ceil(level / 2), 1, TITLE_TIER_COUNT) - 1;
+
+  return CLASS_TITLES[className]?.[alignment]?.[tierIndex]?.title ?? '';
+};
+
+const createEmptyEquipment = (): string[] => {
+  return Array.from({ length: EQUIPMENT_SLOT_COUNT }, () => '');
+};
+
+export const createDefaultCharacter = (
+  name = 'Novo Personagem',
+): Character => {
+  return {
+    id: createId(),
+    createdAt: Date.now(),
+    name,
+    avatar: '',
+    abilities: {
+      for: { score: 10 },
+      des: { score: 10 },
+      con: { score: 10 },
+      int: { score: 10 },
+      sab: { score: 10 },
+      car: { score: 10 },
+    },
+    ancestry: 'Humano',
+    class: 'Guerreiro',
+    level: 1,
+    xp: 0,
+    title: getMatchingTitle('Guerreiro', 'Neutral', 1),
+    alignment: 'Neutral',
+    background: '',
+    deity: '',
+    hitPoints: { current: 6, max: 6 },
+    armorClass: 10,
+    attacks: [],
+    talents: [],
+    coins: { gold: 0, silver: 0, copper: 0 },
+    equipment: createEmptyEquipment(),
+    freeCarry: '',
+  };
+};
