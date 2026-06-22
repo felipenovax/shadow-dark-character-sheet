@@ -10,7 +10,7 @@ import {
   SimpleGrid,
   Text,
 } from '@chakra-ui/react';
-import { LuPlus, LuTrash2 } from 'react-icons/lu';
+import { LuLogOut, LuPlus, LuTrash2 } from 'react-icons/lu';
 
 // types
 import type { Character } from '@/types/character';
@@ -20,6 +20,7 @@ type Props = {
   onSelect: (id: string) => void;
   onCreate: () => void;
   onDelete: (id: string) => void;
+  onSignOut: () => void;
 };
 
 const CharacterCard = ({
@@ -106,6 +107,7 @@ export const CharacterListPage = ({
   onSelect,
   onCreate,
   onDelete,
+  onSignOut,
 }: Props) => {
   return (
     <Box
@@ -126,10 +128,21 @@ export const CharacterListPage = ({
           ShadowDark
         </Heading>
 
-        <Button size="sm" colorPalette="purple" onClick={onCreate}>
-          <LuPlus />
-          Novo personagem
-        </Button>
+        <Flex gap="0.5rem" wrap="wrap">
+          <Button size="sm" colorPalette="purple" onClick={onCreate}>
+            <LuPlus />
+            Novo personagem
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            colorPalette="gray"
+            onClick={onSignOut}
+          >
+            <LuLogOut />
+            Sair
+          </Button>
+        </Flex>
       </Flex>
 
       {characters.length === 0 ? (

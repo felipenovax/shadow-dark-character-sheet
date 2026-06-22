@@ -24,9 +24,6 @@ import {
   upsertCharacter,
 } from '@/repositories/characterRepository';
 
-// lib
-import { ensureSession } from '@/lib/ensureSession';
-
 const EMPTY_ROSTER: Roster = { characters: [], activeId: null };
 
 export const useCharacterRoster = () => {
@@ -47,7 +44,6 @@ export const useCharacterRoster = () => {
 
     const bootstrap = async () => {
       try {
-        await ensureSession();
         const characters = await fetchCharacters();
 
         if (!active) return;
@@ -114,7 +110,7 @@ export const useCharacterRoster = () => {
     [],
   );
 
-  const createCharacter = useCallback(() => {
+  const createCharacter = useCallback((): string => {
     const newCharacter = createDefaultCharacter();
 
     setRoster((current) => ({
@@ -123,6 +119,8 @@ export const useCharacterRoster = () => {
     }));
 
     void upsertCharacter(newCharacter).catch(() => {});
+
+    return newCharacter.id;
   }, []);
 
   const deleteCharacter = useCallback((id: string) => {

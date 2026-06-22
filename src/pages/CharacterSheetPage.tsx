@@ -13,10 +13,11 @@ import type { CharacterRoster } from '@/hooks/useCharacterRoster';
 
 type Props = {
   roster: CharacterRoster;
+  onBack: () => void;
 };
 
-export const CharacterSheetPage = ({ roster }: Props) => {
-  const { activeCharacter, closeActiveCharacter } = roster;
+export const CharacterSheetPage = ({ roster, onBack }: Props) => {
+  const { activeCharacter } = roster;
 
   if (!activeCharacter) return null;
 
@@ -33,7 +34,7 @@ export const CharacterSheetPage = ({ roster }: Props) => {
           size="sm"
           variant="ghost"
           colorPalette="purple"
-          onClick={closeActiveCharacter}
+          onClick={onBack}
         >
           <LuArrowLeft />
           Personagens

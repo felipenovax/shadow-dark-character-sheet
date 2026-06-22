@@ -30,6 +30,11 @@ jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
 
-# Login anônimo (sem contas): cada dispositivo recebe um usuário anônimo.
+# Acesso por e-mail + senha, sem confirmação de e-mail (login imediato).
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+
+# Login anônimo desativado: agora usamos contas de verdade.
 [auth.anonymous]
-enabled = true
+enabled = false
