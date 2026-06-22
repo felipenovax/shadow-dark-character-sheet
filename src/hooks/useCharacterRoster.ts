@@ -20,16 +20,21 @@ import { createId } from '@/utils/createId';
 // repositories
 import {
   deleteCharacterRow,
+  fetchCharacterById,
   fetchCharacters,
-  upsertCharacter,
+  insertCharacter,
+  updateCharacter,
 } from '@/repositories/characterRepository';
 
 const EMPTY_ROSTER: Roster = { characters: [], activeId: null };
 
-export const useCharacterRoster = () => {
+export const useCharacterRoster = (userId: string) => {
   const [roster, setRoster] = useState<Roster>(EMPTY_ROSTER);
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Ids das fichas próprias (a lista pessoal não mistura fichas de jogadores
+  // carregadas sob demanda pelo mestre).
+  const [ownedIds, setOwnedIds] = useState<Set<string>>(new Set());
 
   // Espelho sempre atualizado do roster, para salvar a versão fresca sem
   // depender de closures defasadas. Declarado antes do efeito de save.
@@ -44,12 +49,13 @@ export const useCharacterRoster = () => {
 
     const bootstrap = async () => {
       try {
-        const characters = await fetchCharacters();
+        const characters = await fetchCharacters(userId);
 
         if (!active) return;
 
         // Começa na lista (nenhuma ficha aberta).
         setRoster({ characters, activeId: null });
+        setOwnedIds(new Set(characters.map((char) => char.id)));
         setIsReady(true);
       } catch {
         if (!active) return;
@@ -63,7 +69,7 @@ export const useCharacterRoster = () => {
     return () => {
       active = false;
     };
-  }, []);
+  }, [userId]);
 
   // ── Persistência explícita ────────────────────────────────────────────────
   // Salva a ficha ativa atual (lida do ref, portanto sempre atualizada).
@@ -76,7 +82,7 @@ export const useCharacterRoster = () => {
     if (!active) return;
 
     try {
-      await upsertCharacter(active);
+      await updateCharacter(active);
     } catch {
       // Falha de sync não deve quebrar a UI; o usuário pode tentar de novo.
     }
@@ -96,6 +102,31 @@ export const useCharacterRoster = () => {
     () => roster.characters.find((char) => char.id === roster.activeId) ?? null,
     [roster],
   );
+
+  // Lista pessoal: apenas as fichas do próprio usuário.
+  const ownedCharacters = useMemo(
+    () => roster.characters.filter((char) => ownedIds.has(char.id)),
+    [roster.characters, ownedIds],
+  );
+
+  // Carrega sob demanda uma ficha acessível (ex.: o mestre abrindo a de um
+  // jogador) e a deixa ativa. Retorna false se inacessível/inexistente.
+  const loadCharacter = useCallback(async (id: string): Promise<boolean> => {
+    const cached = rosterRef.current.characters.some((char) => char.id === id);
+
+    if (!cached) {
+      const character = await fetchCharacterById(id).catch(() => null);
+      if (!character) return false;
+
+      setRoster((current) => ({
+        ...current,
+        characters: [...current.characters, character],
+      }));
+    }
+
+    setRoster((current) => ({ ...current, activeId: id }));
+    return true;
+  }, []);
 
   // Aplica uma transformação imutável apenas na ficha ativa (em memória).
   const updateActiveCharacter = useCallback(
@@ -117,14 +148,21 @@ export const useCharacterRoster = () => {
       characters: [...current.characters, newCharacter],
       activeId: newCharacter.id,
     }));
+    setOwnedIds((current) => new Set(current).add(newCharacter.id));
 
-    void upsertCharacter(newCharacter).catch(() => {});
+    void insertCharacter(newCharacter).catch(() => {});
 
     return newCharacter.id;
   }, []);
 
   const deleteCharacter = useCallback((id: string) => {
     void deleteCharacterRow(id).catch(() => {});
+
+    setOwnedIds((current) => {
+      const next = new Set(current);
+      next.delete(id);
+      return next;
+    });
 
     setRoster((current) => {
       const remaining = current.characters.filter((char) => char.id !== id);
@@ -263,12 +301,14 @@ export const useCharacterRoster = () => {
   return {
     roster,
     activeCharacter,
+    ownedCharacters,
     isReady,
     error,
     createCharacter,
     deleteCharacter,
     selectCharacter,
     closeActiveCharacter,
+    loadCharacter,
     saveActiveCharacter,
     requestSave,
     updateField,

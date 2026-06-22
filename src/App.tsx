@@ -1,5 +1,5 @@
 // libs
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   BrowserRouter,
   Navigate,
@@ -13,6 +13,8 @@ import {
 import { Button, Center, Flex, Spinner, Text } from '@chakra-ui/react';
 
 // pages
+import { AdventureDetailPage } from '@/pages/AdventureDetailPage';
+import { AdventuresPage } from '@/pages/AdventuresPage';
 import { AuthPage } from '@/pages/AuthPage';
 import { CharacterListPage } from '@/pages/CharacterListPage';
 import { CharacterSheetPage } from '@/pages/CharacterSheetPage';
@@ -36,11 +38,46 @@ const ListRoute = ({ roster }: { roster: CharacterRoster }) => {
 
   return (
     <CharacterListPage
-      characters={roster.roster.characters}
+      characters={roster.ownedCharacters}
       onSelect={(id) => navigate(`/character/${id}`)}
       onCreate={() => navigate(`/character/${roster.createCharacter()}`)}
       onDelete={roster.deleteCharacter}
+      onOpenAdventures={() => navigate('/adventures')}
       onSignOut={signOut}
+    />
+  );
+};
+
+const AdventuresRoute = ({
+  roster,
+  userId,
+}: {
+  roster: CharacterRoster;
+  userId: string;
+}) => {
+  const navigate = useNavigate();
+
+  return (
+    <AdventuresPage
+      userId={userId}
+      ownedCharacters={roster.ownedCharacters}
+      onOpenAdventure={(id) => navigate(`/adventures/${id}`)}
+      onBack={() => navigate('/')}
+    />
+  );
+};
+
+const AdventureDetailRoute = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  if (!id) return <Navigate to="/adventures" replace />;
+
+  return (
+    <AdventureDetailPage
+      adventureId={id}
+      onOpenCharacter={(charId) => navigate(`/character/${charId}`)}
+      onBack={() => navigate('/adventures')}
     />
   );
 };
@@ -48,19 +85,30 @@ const ListRoute = ({ roster }: { roster: CharacterRoster }) => {
 const SheetRoute = ({ roster }: { roster: CharacterRoster }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [status, setStatus] = useState<'loading' | 'ok' | 'notfound'>(
+    'loading',
+  );
 
-  const exists = roster.roster.characters.some((char) => char.id === id);
+  const { loadCharacter } = roster;
 
-  // Aponta os updaters/save para a ficha da URL.
+  // Carrega a ficha sob demanda (própria ou de jogador, se eu for o mestre).
   useEffect(() => {
-    if (id && exists) roster.selectCharacter(id);
-  }, [id, exists, roster]);
+    let active = true;
+    if (!id) return;
 
-  // URL inválida (ficha inexistente) → volta para a lista.
-  if (!exists) return <Navigate to="/" replace />;
+    setStatus('loading');
+    loadCharacter(id).then((ok) => {
+      if (active) setStatus(ok ? 'ok' : 'notfound');
+    });
 
-  // Espera o activeId sincronizar com a URL antes de renderizar a ficha.
-  if (roster.roster.activeId !== id) {
+    return () => {
+      active = false;
+    };
+  }, [id, loadCharacter]);
+
+  if (status === 'notfound') return <Navigate to="/" replace />;
+
+  if (status === 'loading' || roster.roster.activeId !== id) {
     return (
       <Center minH="100vh" bg="surface.bg">
         <Spinner color="brand.accent" size="lg" />
@@ -68,12 +116,12 @@ const SheetRoute = ({ roster }: { roster: CharacterRoster }) => {
     );
   }
 
-  return <CharacterSheetPage roster={roster} onBack={() => navigate('/')} />;
+  return <CharacterSheetPage roster={roster} onBack={() => navigate(-1)} />;
 };
 
 // App autenticado: dados + rotas. Só monta quando há usuário logado.
-const AuthedApp = () => {
-  const roster = useCharacterRoster();
+const AuthedApp = ({ userId }: { userId: string }) => {
+  const roster = useCharacterRoster(userId);
 
   if (!roster.isReady) {
     return (
@@ -100,6 +148,11 @@ const AuthedApp = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<ListRoute roster={roster} />} />
+        <Route
+          path="/adventures"
+          element={<AdventuresRoute roster={roster} userId={userId} />}
+        />
+        <Route path="/adventures/:id" element={<AdventureDetailRoute />} />
         <Route path="/character/:id" element={<SheetRoute roster={roster} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -120,5 +173,5 @@ export const App = () => {
 
   if (!user) return <AuthPage />;
 
-  return <AuthedApp />;
+  return <AuthedApp userId={user.id} />;
 };

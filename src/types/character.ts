@@ -63,3 +63,12 @@ export type Roster = {
   characters: Character[];
   activeId: string | null;
 };
+
+// Aventura (mesa): liga um mestre a jogadores via código de convite.
+export type Adventure = {
+  id: string;
+  name: string;
+  masterId: string;
+  inviteCode: string;
+  createdAt: string;
+};
