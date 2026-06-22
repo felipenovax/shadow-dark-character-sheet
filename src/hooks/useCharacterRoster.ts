@@ -8,6 +8,7 @@ import type {
   Character,
   Coins,
   HitPoints,
+  InventoryItem,
   Roster,
 } from '@/types/character';
 
@@ -222,17 +223,57 @@ export const useCharacterRoster = (userId: string) => {
     [updateActiveCharacter],
   );
 
-  const updateEquipmentSlot = useCallback(
-    (index: number, value: string) => {
+  const addInventoryItem = useCallback(
+    (item: Omit<InventoryItem, 'quantity'>) => {
       updateActiveCharacter((char) => {
-        const equipment = [...char.equipment];
-        while (equipment.length <= index) {
-          equipment.push('');
-        }
-        equipment[index] = value;
+        // Empilha itens idênticos (mesmo id de catálogo, ou mesmo nome p/ custom).
+        const existingIndex = char.inventory.findIndex((entry) =>
+          item.itemId
+            ? entry.itemId === item.itemId
+            : entry.itemId === null && entry.name === item.name,
+        );
 
-        return { ...char, equipment };
+        if (existingIndex >= 0) {
+          return {
+            ...char,
+            inventory: char.inventory.map((entry, index) =>
+              index === existingIndex
+                ? { ...entry, quantity: entry.quantity + 1 }
+                : entry,
+            ),
+          };
+        }
+
+        return {
+          ...char,
+          inventory: [...char.inventory, { ...item, quantity: 1 }],
+        };
       });
+    },
+    [updateActiveCharacter],
+  );
+
+  const setInventoryQuantity = useCallback(
+    (index: number, quantity: number) => {
+      updateActiveCharacter((char) => ({
+        ...char,
+        inventory:
+          quantity <= 0
+            ? char.inventory.filter((_, i) => i !== index)
+            : char.inventory.map((entry, i) =>
+                i === index ? { ...entry, quantity } : entry,
+              ),
+      }));
+    },
+    [updateActiveCharacter],
+  );
+
+  const removeInventoryItem = useCallback(
+    (index: number) => {
+      updateActiveCharacter((char) => ({
+        ...char,
+        inventory: char.inventory.filter((_, i) => i !== index),
+      }));
     },
     [updateActiveCharacter],
   );
@@ -315,7 +356,9 @@ export const useCharacterRoster = (userId: string) => {
     updateAbilityScore,
     updateHitPoints,
     updateCoins,
-    updateEquipmentSlot,
+    addInventoryItem,
+    setInventoryQuantity,
+    removeInventoryItem,
     addAttack,
     updateAttack,
     removeAttack,

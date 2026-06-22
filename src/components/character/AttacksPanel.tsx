@@ -44,7 +44,7 @@ export const AttacksPanel = () => {
       {attacks.map((attack) => (
         <Grid
           key={attack.id}
-          templateColumns={isEditing ? '1fr 4rem 1fr auto' : '1fr 4rem 1fr'}
+          templateColumns={isEditing ? '1fr 4rem 1fr auto' : '1fr 55px 55px'}
           gap="0.5rem"
           alignItems="center"
         >

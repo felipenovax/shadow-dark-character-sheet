@@ -20,6 +20,7 @@ export const CharacterDashboard = () => {
       <VStack gap="1rem" align="stretch">
         <HeroPanel />
         <VitalsCard />
+        <TreasurePanel />
       </VStack>
 
       <VStack gap="1rem" align="stretch">
@@ -45,10 +46,6 @@ export const CharacterDashboard = () => {
           />
           <EquipmentPanel />
         </Box>
-      </VStack>
-
-      <VStack gap="1rem" align="stretch">
-        <TreasurePanel />
       </VStack>
     </Grid>
   );

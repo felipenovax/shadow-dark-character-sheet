@@ -51,7 +51,9 @@ export const CharacterSheetPage = ({ roster, onBack }: Props) => {
         updateAbilityScore={roster.updateAbilityScore}
         updateHitPoints={roster.updateHitPoints}
         updateCoins={roster.updateCoins}
-        updateEquipmentSlot={roster.updateEquipmentSlot}
+        addInventoryItem={roster.addInventoryItem}
+        setInventoryQuantity={roster.setInventoryQuantity}
+        removeInventoryItem={roster.removeInventoryItem}
         addAttack={roster.addAttack}
         updateAttack={roster.updateAttack}
         removeAttack={roster.removeAttack}

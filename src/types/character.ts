@@ -33,6 +33,15 @@ export type Coins = {
   copper: number;
 };
 
+// Item carregado. Snapshot autossuficiente (nome/espaços), então não quebra se o
+// catálogo mudar. itemId null = item personalizado (fora do catálogo).
+export type InventoryItem = {
+  itemId: string | null;
+  name: string;
+  slots: number;
+  quantity: number;
+};
+
 export type Character = {
   id: string;
   createdAt: number;
@@ -55,7 +64,7 @@ export type Character = {
   attacks: Attack[]; // ATAQUES
   talents: string[]; // TALENTOS / MAGIAS
   coins: Coins;
-  equipment: string[]; // tamanho fixo, índice = nº do slot, '' = vazio
+  inventory: InventoryItem[]; // itens carregados (catálogo ou personalizados)
   freeCarry: string; // CARGA LIVRE
 };
 

@@ -3,6 +3,7 @@ import type {
   AbilityKey,
   Alignment,
   Character,
+  InventoryItem,
 } from '@/types/character';
 
 // utils
@@ -16,6 +17,11 @@ export const MIN_INVENTORY_SLOTS = 10;
 // Força, ou 10, o que for maior.
 export const getInventorySlotCount = (strengthScore: number): number => {
   return Math.max(strengthScore, MIN_INVENTORY_SLOTS);
+};
+
+// Espaços ocupados pelo inventário (quantidade × espaços de cada item).
+export const getUsedSlots = (inventory: InventoryItem[]): number => {
+  return inventory.reduce((total, item) => total + item.quantity * item.slots, 0);
 };
 
 export const ABILITY_ORDER: AbilityKey[] = [
@@ -289,10 +295,6 @@ export const getMatchingTitle = (
   return CLASS_TITLES[className]?.[alignment]?.[tierIndex]?.title ?? '';
 };
 
-const createEmptyEquipment = (): string[] => {
-  return Array.from({ length: MIN_INVENTORY_SLOTS }, () => '');
-};
-
 export const createDefaultCharacter = (
   name = 'Novo Personagem',
 ): Character => {
@@ -324,7 +326,7 @@ export const createDefaultCharacter = (
     attacks: [],
     talents: [],
     coins: { gold: 0, silver: 0, copper: 0 },
-    equipment: createEmptyEquipment(),
+    inventory: [],
     freeCarry: '',
   };
 };

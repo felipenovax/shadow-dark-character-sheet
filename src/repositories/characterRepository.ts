@@ -5,26 +5,13 @@ import type { Character } from '@/types/character';
 import { supabase } from '@/lib/supabase';
 
 // constants
-import {
-  createDefaultCharacter,
-  getInventorySlotCount,
-} from '@/constants/character';
+import { createDefaultCharacter } from '@/constants/character';
 
 const TABLE = 'characters';
 
 // Garante que campos ausentes (linhas antigas) tenham fallback seguro.
 export const normalizeCharacter = (character: Character): Character => {
   const base = createDefaultCharacter(character.name);
-  const strengthScore =
-    character.abilities?.for?.score ?? base.abilities.for.score;
-  const slotCount = Math.max(
-    getInventorySlotCount(strengthScore),
-    character.equipment?.length ?? 0,
-  );
-  const equipment = Array.from(
-    { length: slotCount },
-    (_, index) => character.equipment?.[index] ?? '',
-  );
 
   return {
     ...base,
@@ -36,7 +23,7 @@ export const normalizeCharacter = (character: Character): Character => {
     coins: { ...base.coins, ...character.coins },
     attacks: character.attacks ?? [],
     talents: character.talents ?? [],
-    equipment,
+    inventory: character.inventory ?? [],
   };
 };
 

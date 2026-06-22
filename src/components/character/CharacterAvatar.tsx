@@ -68,7 +68,12 @@ export const CharacterAvatar = ({
   };
 
   return (
-    <Box w={{ base: '100%', md: '8rem' }}>
+    <Box
+      w={{ base: '100%', md: '8rem' }}
+      display={isEditing ? "grid" : "flex"}
+      width="100%"
+      justifyContent={{ base: 'center', md: undefined }}
+    >
       <AspectRatio ratio={4 / 5} h="274px" w="220px">
         {avatar ? (
           <Image
