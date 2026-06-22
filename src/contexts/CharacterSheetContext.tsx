@@ -18,11 +18,12 @@ type CharacterUpdaters = Pick<
   | 'addTalent'
   | 'updateTalent'
   | 'removeTalent'
+  | 'saveActiveCharacter'
+  | 'requestSave'
 >;
 
 type CharacterSheetContextValue = CharacterUpdaters & {
   character: Character;
-  isEditing: boolean;
 };
 
 const CharacterSheetContext =

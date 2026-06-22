@@ -2,51 +2,38 @@
 import { Box, Flex, SimpleGrid, Text } from '@chakra-ui/react';
 
 // components
-import { SectionCard } from '@/components/ui/SectionCard';
+import { EditableSection } from '@/components/character/EditableSection';
 import { SheetField } from '@/components/ui/SheetField';
 import { StatLabel } from '@/components/ui/StatLabel';
 
 // contexts
 import { useCharacterSheetContext } from '@/contexts/CharacterSheetContext';
 
-// types
-import type { Coins } from '@/types/character';
-
-const COIN_FIELDS: { key: keyof Coins; label: string }[] = [
-  { key: 'gold', label: 'PO' },
-  { key: 'silver', label: 'PP' },
-  { key: 'copper', label: 'PC' },
-];
+// constants
+import { getInventorySlotCount } from '@/constants/character';
 
 export const EquipmentPanel = () => {
-  const {
-    character,
-    isEditing,
-    updateField,
-    updateCoins,
-    updateEquipmentSlot,
-  } = useCharacterSheetContext();
+  const { character, updateField, updateEquipmentSlot } =
+    useCharacterSheetContext();
+
+  const slotCount = getInventorySlotCount(character.abilities.for.score);
+  const usedSlots = character.equipment
+    .slice(0, slotCount)
+    .filter((slot) => slot.trim() !== '').length;
 
   return (
-    <SectionCard title="Equipamento">
-      <SimpleGrid columns={3} gap="0.75rem">
-        {COIN_FIELDS.map(({ key, label }) => (
-          <Box key={key}>
-            <StatLabel>{label}</StatLabel>
-            <SheetField
-              type="number"
-              isEditing={isEditing}
-              value={character.coins[key]}
-              min={0}
-              onChange={(value) => updateCoins(key, value)}
-              textProps={{ fontWeight: 'bold' }}
-            />
-          </Box>
-        ))}
-      </SimpleGrid>
+    <EditableSection title="Equipamento">
+      {(isEditing) => (
+      <>
+      <Flex align="center" justify="space-between">
+        <StatLabel>Inventário</StatLabel>
+        <Text fontSize="0.75rem" color="fg.muted">
+          {usedSlots}/{slotCount} espaços
+        </Text>
+      </Flex>
 
       <SimpleGrid columns={{ base: 1, sm: 2 }} gap="0.5rem">
-        {character.equipment.map((slot, index) => (
+        {Array.from({ length: slotCount }, (_, index) => (
           <Flex key={index} align="center" gap="0.5rem">
             <Text
               fontSize="0.75rem"
@@ -59,7 +46,7 @@ export const EquipmentPanel = () => {
             <Box flex="1">
               <SheetField
                 isEditing={isEditing}
-                value={slot}
+                value={character.equipment[index] ?? ''}
                 placeholder="Item"
                 onChange={(value) => updateEquipmentSlot(index, value)}
                 textProps={{ fontSize: '0.875rem' }}
@@ -79,6 +66,8 @@ export const EquipmentPanel = () => {
           textProps={{ fontSize: '0.875rem' }}
         />
       </Box>
-    </SectionCard>
+      </>
+      )}
+    </EditableSection>
   );
 };

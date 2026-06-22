@@ -9,6 +9,11 @@ export type Abilities = Record<AbilityKey, Ability>;
 
 export type Alignment = 'Lawful' | 'Neutral' | 'Chaotic';
 
+// Condição vital do personagem (máquina de estados de queda/morte).
+// normal: PV > 0 · dying: caído a 0 PV (em agonia) · stabilized: 0 PV sem risco
+// · dead: morto.
+export type VitalCondition = 'normal' | 'dying' | 'stabilized' | 'dead';
+
 export type Attack = {
   id: string;
   name: string;
@@ -43,6 +48,9 @@ export type Character = {
   background: string; // ANTECEDENTE
   deity: string; // DIVINDADE
   hitPoints: HitPoints; // PV
+  // Rodadas restantes até a morte enquanto em agonia. null = timer não definido.
+  deathTimer: number | null;
+  condition: VitalCondition; // estado vital (normal/agonia/estabilizado/morto)
   armorClass: number; // CA
   attacks: Attack[]; // ATAQUES
   talents: string[]; // TALENTOS / MAGIAS

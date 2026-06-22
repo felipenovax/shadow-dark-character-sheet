@@ -3,32 +3,38 @@ import { Box, Flex, Grid, IconButton, Text } from '@chakra-ui/react';
 import { LuPlus, LuTrash2 } from 'react-icons/lu';
 
 // components
-import { SectionCard } from '@/components/ui/SectionCard';
+import { EditableSection } from '@/components/character/EditableSection';
 import { SheetField } from '@/components/ui/SheetField';
 import { StatLabel } from '@/components/ui/StatLabel';
 
 // contexts
 import { useCharacterSheetContext } from '@/contexts/CharacterSheetContext';
 
+// utils
+import { formatAttackBonus } from '@/utils/formatModifier';
+
 export const AttacksPanel = () => {
-  const { character, isEditing, addAttack, updateAttack, removeAttack } =
+  const { character, addAttack, updateAttack, removeAttack } =
     useCharacterSheetContext();
   const { attacks } = character;
 
-  const addButton = isEditing ? (
-    <IconButton
-      aria-label="Adicionar ataque"
-      size="xs"
-      variant="ghost"
-      colorPalette="purple"
-      onClick={addAttack}
-    >
-      <LuPlus />
-    </IconButton>
-  ) : null;
+  const renderAddButton = (isEditing: boolean) =>
+    isEditing ? (
+      <IconButton
+        aria-label="Adicionar ataque"
+        size="xs"
+        variant="ghost"
+        colorPalette="purple"
+        onClick={addAttack}
+      >
+        <LuPlus />
+      </IconButton>
+    ) : null;
 
   return (
-    <SectionCard title="Ataques" action={addButton}>
+    <EditableSection title="Ataques" action={renderAddButton}>
+      {(isEditing) => (
+      <>
       {attacks.length === 0 && (
         <Text color="fg.muted" fontSize="0.875rem">
           Nenhum ataque cadastrado.
@@ -49,16 +55,24 @@ export const AttacksPanel = () => {
               value={attack.name}
               placeholder="Ataque"
               onChange={(value) => updateAttack(attack.id, { name: value })}
+              textProps={{ fontSize: '1rem', fontWeight: 'bold' }}
             />
           </Box>
           <Box>
             <StatLabel>Bônus</StatLabel>
-            <SheetField
-              type="number"
-              isEditing={isEditing}
-              value={attack.bonus}
-              onChange={(value) => updateAttack(attack.id, { bonus: value })}
-            />
+            {isEditing ? (
+              <SheetField
+                type="number"
+                isEditing
+                value={attack.bonus}
+                onChange={(value) => updateAttack(attack.id, { bonus: value })}
+                textProps={{ fontSize: '1rem', fontWeight: 'bold' }}
+              />
+            ) : (
+              <Text fontSize="1rem" fontWeight="bold">
+                {formatAttackBonus(attack.bonus)}
+              </Text>
+            )}
           </Box>
           <Box>
             <StatLabel>Dano</StatLabel>
@@ -67,6 +81,7 @@ export const AttacksPanel = () => {
               value={attack.damage}
               placeholder="1d6"
               onChange={(value) => updateAttack(attack.id, { damage: value })}
+              textProps={{ fontSize: '1rem', fontWeight: 'bold' }}
             />
           </Box>
           {isEditing && (
@@ -84,6 +99,8 @@ export const AttacksPanel = () => {
           )}
         </Grid>
       ))}
-    </SectionCard>
+      </>
+      )}
+    </EditableSection>
   );
 };

@@ -12,6 +12,15 @@ dist
 dist-ssr
 *.local
 
+# Env (a anon key é pública, mas mantemos fora do repo)
+.env
+.env.*
+!.env.example
+
+# Supabase CLI (artefatos locais)
+supabase/.branches
+supabase/.temp
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

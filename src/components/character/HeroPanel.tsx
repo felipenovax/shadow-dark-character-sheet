@@ -1,9 +1,10 @@
 // ui
-import { Box, Flex, Grid, Stack, Text } from '@chakra-ui/react';
+import { Box, Grid, Stack, Text } from '@chakra-ui/react';
 
 // components
+import { BackgroundField } from '@/components/character/BackgroundField';
 import { CharacterAvatar } from '@/components/character/CharacterAvatar';
-import { SectionCard } from '@/components/ui/SectionCard';
+import { EditableSection } from '@/components/character/EditableSection';
 import { SheetField } from '@/components/ui/SheetField';
 import { StatLabel } from '@/components/ui/StatLabel';
 
@@ -23,7 +24,7 @@ import {
 import type { Alignment } from '@/types/character';
 
 export const HeroPanel = () => {
-  const { character, isEditing, updateField } = useCharacterSheetContext();
+  const { character, updateField } = useCharacterSheetContext();
 
   // Título é derivado de classe + alinhamento + nível; recalcula a cada mudança.
   const handleClassChange = (value: string) => {
@@ -43,11 +44,13 @@ export const HeroPanel = () => {
   };
 
   return (
-    <SectionCard>
+    <EditableSection>
+      {(isEditing) => (
       <Grid templateColumns={{ base: '1fr', md: '220px 1fr' }} gap="1.25rem">
         <CharacterAvatar
           name={character.name}
           avatar={character.avatar || '/default.png'}
+          characterId={character.id}
           isEditing={isEditing}
           onChange={(value) => updateField('avatar', value)}
         />
@@ -102,7 +105,7 @@ export const HeroPanel = () => {
             </Box>
             <Box>
               <StatLabel>XP</StatLabel>
-              <Flex align="center" gap="0.5rem">
+              <Grid templateColumns="auto auto" gap="0.5rem">
                 <SheetField
                   type="number"
                   isEditing={isEditing}
@@ -114,34 +117,58 @@ export const HeroPanel = () => {
                 <Text fontSize="1rem" fontWeight="bold" color="fg.muted">
                   / {getXpThreshold(character.level)}
                 </Text>
-              </Flex>
+              </Grid>
             </Box>
           </Grid>
 
-          <Box>
-            <StatLabel>Alinhamento</StatLabel>
-            <SheetField
-              type="select"
-              isEditing={isEditing}
-              value={character.alignment}
-              options={ALIGNMENT_OPTIONS}
-              onChange={handleAlignmentChange}
-              textProps={{ fontSize: '1rem', fontWeight: 'bold' }}
-            />
-          </Box>
+          <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap="0.75rem">
+            <Box>
+              <StatLabel>Alinhamento</StatLabel>
+              <SheetField
+                type="select"
+                isEditing={isEditing}
+                value={character.alignment}
+                options={ALIGNMENT_OPTIONS}
+                onChange={handleAlignmentChange}
+                textProps={{ fontSize: '1rem', fontWeight: 'bold' }}
+              />
+            </Box>
 
-          <Box>
-            <StatLabel>Título</StatLabel>
-            <Text
-              fontSize="1rem"
-              fontWeight="bold"
-              color={character.title ? 'fg' : 'fg.muted'}
-            >
-              {character.title || '—'}
-            </Text>
-          </Box>
+            <Box>
+              <StatLabel>Título</StatLabel>
+              <Text
+                fontSize="1rem"
+                fontWeight="bold"
+                color={character.title ? 'fg' : 'fg.muted'}
+              >
+                {character.title || '—'}
+              </Text>
+            </Box>
+          </Grid>
+
+          <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap="0.75rem">
+            <Box>
+              <StatLabel>Antecedente</StatLabel>
+              <BackgroundField
+                isEditing={isEditing}
+                value={character.background}
+                onChange={(value) => updateField('background', value)}
+              />
+            </Box>
+            <Box>
+              <StatLabel>Divindade</StatLabel>
+              <SheetField
+                isEditing={isEditing}
+                value={character.deity}
+                placeholder="Divindade"
+                onChange={(value) => updateField('deity', value)}
+                textProps={{ fontSize: '1rem', fontWeight: 'bold' }}
+              />
+            </Box>
+          </Grid>
         </Stack>
       </Grid>
-    </SectionCard>
+      )}
+    </EditableSection>
   );
 };

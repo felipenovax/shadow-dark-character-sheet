@@ -1,5 +1,5 @@
 // libs
-import { useRef, type ChangeEvent } from 'react';
+import { useState, useRef, type ChangeEvent } from 'react';
 
 // ui
 import {
@@ -14,11 +14,12 @@ import {
 import { LuImagePlus, LuTrash2 } from 'react-icons/lu';
 
 // utils
-import { readImageFile } from '@/utils/readImageFile';
+import { removeAvatar, uploadAvatar } from '@/utils/uploadAvatar';
 
 type Props = {
   name: string;
   avatar: string;
+  characterId: string;
   isEditing: boolean;
   onChange: (avatar: string) => void;
 };
@@ -32,20 +33,38 @@ const sharedFrameStyles = {
 export const CharacterAvatar = ({
   name,
   avatar,
+  characterId,
   isEditing,
   onChange,
 }: Props) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const initial = (name.trim().charAt(0) || '?').toUpperCase();
 
   const handleSelectFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = ''; // permite reenviar o mesmo arquivo
 
     if (!file) return;
 
-    const dataUrl = await readImageFile(file);
-    onChange(dataUrl);
-    event.currentTarget.value = ''; // permite reenviar o mesmo arquivo
+    setIsUploading(true);
+    try {
+      const publicUrl = await uploadAvatar(file, characterId);
+      onChange(publicUrl);
+    } catch {
+      // falha de upload não deve quebrar a UI
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemove = async () => {
+    try {
+      await removeAvatar(characterId);
+    } catch {
+      // segue limpando a referência mesmo se o objeto já não existir
+    }
+    onChange('');
   };
 
   return (
@@ -80,6 +99,7 @@ export const CharacterAvatar = ({
             variant="outline"
             colorPalette="purple"
             flex="1"
+            loading={isUploading}
             onClick={() => inputRef.current?.click()}
           >
             <LuImagePlus />
@@ -92,7 +112,8 @@ export const CharacterAvatar = ({
               size="xs"
               variant="ghost"
               colorPalette="gray"
-              onClick={() => onChange('')}
+              disabled={isUploading}
+              onClick={handleRemove}
             >
               <LuTrash2 />
             </IconButton>

@@ -1,44 +1,75 @@
 // ui
-import { Box, Flex, Text } from '@chakra-ui/react';
+import { Box, Grid, Stack } from '@chakra-ui/react';
 
 // components
-import { SectionCard } from '@/components/ui/SectionCard';
+import { ConditionBanner } from '@/components/character/ConditionBanner';
+import { DeathTimerDialog } from '@/components/character/DeathTimerDialog';
+import { EditableSection } from '@/components/character/EditableSection';
+import { HitPointsBar } from '@/components/character/HitPointsBar';
 import { SheetField } from '@/components/ui/SheetField';
 import { StatLabel } from '@/components/ui/StatLabel';
 
 // contexts
 import { useCharacterSheetContext } from '@/contexts/CharacterSheetContext';
 
+// hooks
+import { useVitals } from '@/hooks/useVitals';
+
 export const VitalsCard = () => {
-  const { character, isEditing, updateField, updateHitPoints } =
-    useCharacterSheetContext();
-  const { hitPoints } = character;
+  const { character, updateField } = useCharacterSheetContext();
+  const vitals = useVitals();
 
   return (
-    <SectionCard title="Vitais">
+    <EditableSection title="Vitais">
+      {(isEditing) => (
+      <>
       <Box>
         <StatLabel>Pontos de Vida</StatLabel>
-        <Flex align="center" gap="0.5rem">
-          <Box flex="1">
-            <SheetField
-              type="number"
-              isEditing={isEditing}
-              value={hitPoints.current}
-              onChange={(value) => updateHitPoints('current', value)}
-              textProps={{ fontSize: '1.25rem', fontWeight: 'bold' }}
-            />
-          </Box>
-          <Text color="fg.muted">/</Text>
-          <Box flex="1">
-            <SheetField
-              type="number"
-              isEditing={isEditing}
-              value={hitPoints.max}
-              onChange={(value) => updateHitPoints('max', value)}
-              textProps={{ fontSize: '1.25rem', fontWeight: 'bold' }}
-            />
-          </Box>
-        </Flex>
+        <Stack gap="0.75rem">
+          <HitPointsBar
+            current={vitals.current}
+            max={vitals.max}
+            onAdjust={vitals.adjustCurrent}
+          />
+
+          {isEditing && (
+            <Grid templateColumns="1fr 1fr" gap="0.5rem">
+              <Box>
+                <StatLabel>Atual</StatLabel>
+                <SheetField
+                  type="number"
+                  isEditing
+                  min={0}
+                  value={vitals.current}
+                  onChange={vitals.setCurrent}
+                  textProps={{ fontSize: '1.25rem', fontWeight: 'bold' }}
+                />
+              </Box>
+              <Box>
+                <StatLabel>Máximo</StatLabel>
+                <SheetField
+                  type="number"
+                  isEditing
+                  min={0}
+                  value={vitals.max}
+                  onChange={vitals.setMax}
+                  textProps={{ fontSize: '1.25rem', fontWeight: 'bold' }}
+                />
+              </Box>
+            </Grid>
+          )}
+
+          <ConditionBanner
+            condition={vitals.condition}
+            deathTimer={vitals.deathTimer}
+            isTimeUp={vitals.isTimeUp}
+            onDecrement={vitals.decrementDeathTimer}
+            onSetTimer={vitals.openDeathPrompt}
+            onStabilize={vitals.stabilize}
+            onDeclareDeath={vitals.declareDeath}
+            onRevertDeath={vitals.revertDeath}
+          />
+        </Stack>
       </Box>
 
       <Box>
@@ -51,6 +82,14 @@ export const VitalsCard = () => {
           textProps={{ fontSize: '1.25rem', fontWeight: 'bold' }}
         />
       </Box>
-    </SectionCard>
+
+      <DeathTimerDialog
+        isOpen={vitals.isDeathPromptOpen}
+        onClose={vitals.closeDeathPrompt}
+        onConfirm={vitals.confirmDeathTimer}
+      />
+      </>
+      )}
+    </EditableSection>
   );
 };

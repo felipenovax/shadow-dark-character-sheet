@@ -10,7 +10,13 @@ import { createId } from '@/utils/createId';
 
 export const STORAGE_KEY = 'shadow-dark:roster:v1';
 
-export const EQUIPMENT_SLOT_COUNT = 20;
+export const MIN_INVENTORY_SLOTS = 10;
+
+// Regra Shadow Dark: você carrega um número de itens igual ao seu valor de
+// Força, ou 10, o que for maior.
+export const getInventorySlotCount = (strengthScore: number): number => {
+  return Math.max(strengthScore, MIN_INVENTORY_SLOTS);
+};
 
 export const ABILITY_ORDER: AbilityKey[] = [
   'for',
@@ -44,6 +50,112 @@ export const ANCESTRY_OPTIONS: { value: string; label: string }[] = [
   { value: 'Goblin', label: 'Goblin' },
   { value: 'Halfling', label: 'Halfling' },
   { value: 'Meio-Orc', label: 'Meio-Orc' },
+];
+
+type BackgroundOption = { value: string; label: string; description: string };
+
+// Lista fixa de antecedentes (Shadow Dark) com suas descrições.
+export const BACKGROUND_OPTIONS: BackgroundOption[] = [
+  {
+    value: 'Garoto de Rua',
+    label: 'Garoto de Rua',
+    description: 'Você cresceu nas ruas impiedosas de uma cidade grande.',
+  },
+  {
+    value: 'Procurado',
+    label: 'Procurado',
+    description: 'Há um preço pela sua cabeça, mas você tem aliados.',
+  },
+  {
+    value: 'Iniciado do Culto',
+    label: 'Iniciado do Culto',
+    description: 'Você conhece segredos e rituais blasfemos.',
+  },
+  {
+    value: 'Guilda dos Ladrões',
+    label: 'Guilda dos Ladrões',
+    description: 'Você tem conexões, contatos e dívidas.',
+  },
+  {
+    value: 'Banido',
+    label: 'Banido',
+    description: 'Seu povo o exilou por crimes que você supostamente cometeu.',
+  },
+  {
+    value: 'Órfão',
+    label: 'Órfão',
+    description: 'Um guardião incomum o resgatou e o criou.',
+  },
+  {
+    value: 'Aprendiz de Mago',
+    label: 'Aprendiz de Mago',
+    description: 'Você tem um dom natural e talento para magia.',
+  },
+  {
+    value: 'Joalheiro',
+    label: 'Joalheiro',
+    description: 'Você pode identificar valores e autenticidade facilmente.',
+  },
+  {
+    value: 'Herbalista',
+    label: 'Herbalista',
+    description: 'Você conhece plantas, remédios e venenos.',
+  },
+  {
+    value: 'Bárbaro',
+    label: 'Bárbaro',
+    description: 'Você deixou a horda, mas ela não saiu totalmente de você.',
+  },
+  {
+    value: 'Mercenário',
+    label: 'Mercenário',
+    description: 'Você lutou contra amigos e inimigos pelo seu dinheiro.',
+  },
+  {
+    value: 'Marinheiro',
+    label: 'Marinheiro',
+    description: 'Pirata, corsário ou mercador: os mares são seus.',
+  },
+  {
+    value: 'Acólito',
+    label: 'Acólito',
+    description: 'Você foi bem treinado em ritos religiosos e doutrinas.',
+  },
+  {
+    value: 'Soldado',
+    label: 'Soldado',
+    description: 'Você serviu como combatente em um exército organizado.',
+  },
+  {
+    value: 'Guardião',
+    label: 'Guardião',
+    description: 'As florestas e regiões selvagens são seu verdadeiro lar.',
+  },
+  {
+    value: 'Batedor',
+    label: 'Batedor',
+    description: 'Você sobreviveu graças à furtividade, observação e velocidade.',
+  },
+  {
+    value: 'Menestrel',
+    label: 'Menestrel',
+    description: 'Você viajou por longas distâncias com seu charme e talento.',
+  },
+  {
+    value: 'Estudioso',
+    label: 'Estudioso',
+    description: 'Você sabe muito sobre história antiga e lendas.',
+  },
+  {
+    value: 'Nobre',
+    label: 'Nobre',
+    description: 'Carregar um nome famoso abriu muitas portas para você.',
+  },
+  {
+    value: 'Cirurgião',
+    label: 'Cirurgião',
+    description: 'Você entende de anatomia, cirurgias e primeiros socorros.',
+  },
 ];
 
 export const ALIGNMENT_OPTIONS: { value: Alignment; label: string }[] = [
@@ -161,9 +273,8 @@ const BASE_XP_THRESHOLD = 10;
 // XP necessário para subir do nível atual para o próximo.
 // Regra: dobra a cada nível → 10 (1→2), 20 (2→3), 40 (3→4)...
 export const getXpThreshold = (level: number): number => {
-  const safeLevel = Math.max(level, 1);
 
-  return BASE_XP_THRESHOLD * 2 ** (safeLevel - 1);
+  return BASE_XP_THRESHOLD * level;
 };
 
 // Título único correspondente à classe + alinhamento + faixa do nível atual.
@@ -179,7 +290,7 @@ export const getMatchingTitle = (
 };
 
 const createEmptyEquipment = (): string[] => {
-  return Array.from({ length: EQUIPMENT_SLOT_COUNT }, () => '');
+  return Array.from({ length: MIN_INVENTORY_SLOTS }, () => '');
 };
 
 export const createDefaultCharacter = (
@@ -207,6 +318,8 @@ export const createDefaultCharacter = (
     background: '',
     deity: '',
     hitPoints: { current: 6, max: 6 },
+    deathTimer: null,
+    condition: 'normal',
     armorClass: 10,
     attacks: [],
     talents: [],

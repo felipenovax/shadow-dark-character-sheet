@@ -6,6 +6,7 @@ import { SheetField } from '@/components/ui/SheetField';
 
 // contexts
 import { useCharacterSheetContext } from '@/contexts/CharacterSheetContext';
+import { useSectionEditing } from '@/contexts/SectionEditContext';
 
 // constants
 import { ABILITY_LABELS } from '@/constants/character';
@@ -22,8 +23,8 @@ type Props = {
 };
 
 export const AbilityCard = ({ abilityKey }: Props) => {
-  const { character, isEditing, updateAbilityScore } =
-    useCharacterSheetContext();
+  const { character, updateAbilityScore } = useCharacterSheetContext();
+  const isEditing = useSectionEditing();
 
   const { score } = character.abilities[abilityKey];
   const modifier = getAbilityModifier(score);

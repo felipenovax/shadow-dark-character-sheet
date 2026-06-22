@@ -3,30 +3,33 @@ import { Flex, IconButton, Text, Textarea } from '@chakra-ui/react';
 import { LuPlus, LuTrash2 } from 'react-icons/lu';
 
 // components
-import { SectionCard } from '@/components/ui/SectionCard';
+import { EditableSection } from '@/components/character/EditableSection';
 
 // contexts
 import { useCharacterSheetContext } from '@/contexts/CharacterSheetContext';
 
 export const SpellsTalentsPanel = () => {
-  const { character, isEditing, addTalent, updateTalent, removeTalent } =
+  const { character, addTalent, updateTalent, removeTalent } =
     useCharacterSheetContext();
   const { talents } = character;
 
-  const addButton = isEditing ? (
-    <IconButton
-      aria-label="Adicionar talento ou magia"
-      size="xs"
-      variant="ghost"
-      colorPalette="purple"
-      onClick={addTalent}
-    >
-      <LuPlus />
-    </IconButton>
-  ) : null;
+  const renderAddButton = (isEditing: boolean) =>
+    isEditing ? (
+      <IconButton
+        aria-label="Adicionar talento ou magia"
+        size="xs"
+        variant="ghost"
+        colorPalette="purple"
+        onClick={addTalent}
+      >
+        <LuPlus />
+      </IconButton>
+    ) : null;
 
   return (
-    <SectionCard title="Talentos / Magias" action={addButton}>
+    <EditableSection title="Talentos / Magias" action={renderAddButton}>
+      {(isEditing) => (
+      <>
       {talents.length === 0 && (
         <Text color="fg.muted" fontSize="0.875rem">
           Nenhum talento ou magia cadastrado.
@@ -66,6 +69,8 @@ export const SpellsTalentsPanel = () => {
           )}
         </Flex>
       ))}
-    </SectionCard>
+      </>
+      )}
+    </EditableSection>
   );
 };

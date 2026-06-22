@@ -6,8 +6,8 @@ import { AbilitiesGrid } from '@/components/character/AbilitiesGrid';
 import { AttacksPanel } from '@/components/character/AttacksPanel';
 import { EquipmentPanel } from '@/components/character/EquipmentPanel';
 import { HeroPanel } from '@/components/character/HeroPanel';
-import { IdentityCard } from '@/components/character/IdentityCard';
 import { SpellsTalentsPanel } from '@/components/character/SpellsTalentsPanel';
+import { TreasurePanel } from '@/components/character/TreasurePanel';
 import { VitalsCard } from '@/components/character/VitalsCard';
 
 export const CharacterDashboard = () => {
@@ -20,12 +20,14 @@ export const CharacterDashboard = () => {
       <VStack gap="1rem" align="stretch">
         <HeroPanel />
         <VitalsCard />
-        <IdentityCard />
       </VStack>
 
       <VStack gap="1rem" align="stretch">
         <AbilitiesGrid />
-        <AttacksPanel />
+        <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap="1rem">
+          <AttacksPanel />
+          <SpellsTalentsPanel />
+        </Grid>
         <Box position="relative">
           <Image
             src="/equipment.png"
@@ -46,7 +48,7 @@ export const CharacterDashboard = () => {
       </VStack>
 
       <VStack gap="1rem" align="stretch">
-        <SpellsTalentsPanel />
+        <TreasurePanel />
       </VStack>
     </Grid>
   );
