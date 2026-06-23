@@ -42,6 +42,12 @@ export type InventoryItem = {
   quantity: number;
 };
 
+// Consumível aceso: id + instante de expiração (epoch ms). Conta pelo relógio real.
+export type ActiveConsumable = {
+  id: string;
+  expiresAt: number;
+};
+
 export type Character = {
   id: string;
   createdAt: number;
@@ -65,6 +71,7 @@ export type Character = {
   talents: string[]; // TALENTOS / MAGIAS
   coins: Coins;
   inventory: InventoryItem[]; // itens carregados (catálogo ou personalizados)
+  consumables: ActiveConsumable[]; // consumíveis acesos (ex.: tocha)
   freeCarry: string; // CARGA LIVRE
 };
 

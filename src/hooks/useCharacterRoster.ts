@@ -278,6 +278,38 @@ export const useCharacterRoster = (userId: string) => {
     [updateActiveCharacter],
   );
 
+  // Consome uma unidade de um item do inventário (por itemId de catálogo).
+  const consumeInventoryItem = useCallback(
+    (itemId: string) => {
+      updateActiveCharacter((char) => ({
+        ...char,
+        inventory: char.inventory
+          .map((entry) =>
+            entry.itemId === itemId
+              ? { ...entry, quantity: entry.quantity - 1 }
+              : entry,
+          )
+          .filter((entry) => entry.quantity > 0),
+      }));
+    },
+    [updateActiveCharacter],
+  );
+
+  // Acende (expiresAt) ou apaga (null) um consumível por id.
+  const setConsumableTimer = useCallback(
+    (id: string, expiresAt: number | null) => {
+      updateActiveCharacter((char) => {
+        const others = char.consumables.filter((entry) => entry.id !== id);
+        return {
+          ...char,
+          consumables:
+            expiresAt === null ? others : [...others, { id, expiresAt }],
+        };
+      });
+    },
+    [updateActiveCharacter],
+  );
+
   const addAttack = useCallback(() => {
     updateActiveCharacter((char) => ({
       ...char,
@@ -359,6 +391,8 @@ export const useCharacterRoster = (userId: string) => {
     addInventoryItem,
     setInventoryQuantity,
     removeInventoryItem,
+    consumeInventoryItem,
+    setConsumableTimer,
     addAttack,
     updateAttack,
     removeAttack,

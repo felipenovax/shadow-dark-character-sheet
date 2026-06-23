@@ -4,6 +4,7 @@ import { LuArrowLeft } from 'react-icons/lu';
 
 // components
 import { CharacterDashboard } from '@/components/character/CharacterDashboard';
+import { ConsumablesFab } from '@/components/character/ConsumablesFab';
 
 // contexts
 import { CharacterSheetProvider } from '@/contexts/CharacterSheetContext';
@@ -54,6 +55,8 @@ export const CharacterSheetPage = ({ roster, onBack }: Props) => {
         addInventoryItem={roster.addInventoryItem}
         setInventoryQuantity={roster.setInventoryQuantity}
         removeInventoryItem={roster.removeInventoryItem}
+        consumeInventoryItem={roster.consumeInventoryItem}
+        setConsumableTimer={roster.setConsumableTimer}
         addAttack={roster.addAttack}
         updateAttack={roster.updateAttack}
         removeAttack={roster.removeAttack}
@@ -64,6 +67,7 @@ export const CharacterSheetPage = ({ roster, onBack }: Props) => {
         requestSave={roster.requestSave}
       >
         <CharacterDashboard />
+        <ConsumablesFab />
       </CharacterSheetProvider>
     </Box>
   );

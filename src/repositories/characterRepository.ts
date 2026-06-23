@@ -24,6 +24,7 @@ export const normalizeCharacter = (character: Character): Character => {
     attacks: character.attacks ?? [],
     talents: character.talents ?? [],
     inventory: character.inventory ?? [],
+    consumables: character.consumables ?? [],
   };
 };
 
@@ -45,6 +46,22 @@ export const fetchCharacters = async (
   if (error) throw error;
 
   return (data as CharacterRow[]).map((row) => normalizeCharacter(row.data));
+};
+
+// Aventura à qual a ficha está vinculada (null se nenhuma). RLS permite ao dono
+// e ao mestre lerem a linha.
+export const fetchCharacterAdventureId = async (
+  characterId: string,
+): Promise<string | null> => {
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select('adventure_id')
+    .eq('id', characterId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return (data as { adventure_id: string | null } | null)?.adventure_id ?? null;
 };
 
 export type CharacterLink = { characterId: string; adventureId: string };

@@ -327,6 +327,7 @@ export const createDefaultCharacter = (
     talents: [],
     coins: { gold: 0, silver: 0, copper: 0 },
     inventory: [],
+    consumables: [],
     freeCarry: '',
   };
 };
