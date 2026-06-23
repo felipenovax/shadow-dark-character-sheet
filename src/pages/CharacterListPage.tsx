@@ -40,7 +40,7 @@ const CharacterCard = ({
   const initial = (character.name.trim().charAt(0) || '?').toUpperCase();
   const [isHovered, setIsHovered] = useState(false);
   const [isLongPressed, setIsLongPressed] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didLongPressRef = useRef(false);
 
   const handleTouchStart = () => {
@@ -116,7 +116,7 @@ const CharacterCard = ({
       <Box flex="1" display="flex" flexDirection="column" minW="0">
         <Card.Body p="1.25rem" flex="1">
           <Flex justify="space-between" align="flex-start" mb="0.25rem" gap="0.5rem">
-            <Card.Title as="h3" size="md" mb="0" truncate>
+            <Card.Title as="h3" mb="0" truncate>
               {character.name || 'Sem nome'}
             </Card.Title>
             {(isHovered || isLongPressed) && (
@@ -197,7 +197,7 @@ export const CharacterListPage = ({
     >
       <Flex px="1rem" py="0.5rem" mb="1rem" align="center" justify="space-between">
         <Flex gap="0.5rem" align="center" fontSize="lg">
-          <Text as="a" href="/" color="fg.muted" _hover={{ color: 'fg' }} transition="color 0.2s">
+          <Text as="span" cursor="pointer" onClick={() => window.location.href = '/'} color="fg.muted" _hover={{ color: 'fg' }} transition="color 0.2s">
             ShadowDark
           </Text>
           <Text color="fg.subtle">/</Text>

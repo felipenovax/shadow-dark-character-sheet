@@ -33,11 +33,11 @@ export const CharacterSheetPage = ({ roster, onBack }: Props) => {
     >
       <Flex px="1rem" py="0.5rem" mb="1rem" align="center" justify="space-between">
         <Flex gap="0.5rem" align="center" fontSize="lg">
-          <Text as="a" href="/" color="fg.muted" _hover={{ color: 'fg' }} transition="color 0.2s">
+          <Text as="span" cursor="pointer" onClick={() => window.location.href = '/'} color="fg.muted" _hover={{ color: 'fg' }} transition="color 0.2s">
             ShadowDark
           </Text>
           <Text color="fg.subtle">/</Text>
-          <Text as="a" href="/" color="fg.muted" _hover={{ color: 'fg' }} transition="color 0.2s">
+          <Text as="span" cursor="pointer" onClick={() => window.location.href = '/'} color="fg.muted" _hover={{ color: 'fg' }} transition="color 0.2s">
             Personagens
           </Text>
           <Text color="fg.subtle">/</Text>

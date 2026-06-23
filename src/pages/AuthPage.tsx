@@ -146,7 +146,7 @@ export const AuthPage = () => {
         <Box
           as="form"
           onSubmit={handleSubmit}
-          noValidate
+          {...({ noValidate: true } as any)}
           bg="rgba(23, 18, 36, 0.05)"
           backdropFilter="blur(16px)"
           borderColor="rgba(255, 255, 255, 0.1)"
