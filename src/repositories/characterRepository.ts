@@ -16,6 +16,7 @@ export const normalizeCharacter = (character: Character): Character => {
   return {
     ...base,
     ...character,
+    backstory: character.backstory ?? '',
     abilities: { ...base.abilities, ...character.abilities },
     hitPoints: { ...base.hitPoints, ...character.hitPoints },
     deathTimer: character.deathTimer ?? null,

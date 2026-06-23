@@ -55,6 +55,7 @@ export type Character = {
   title: string; // TÍTULO
   alignment: Alignment; // ALINHAMENTO
   background: string; // ANTECEDENTE
+  backstory: string; // HISTÓRIA (Lore)
   deity: string; // DIVINDADE
   hitPoints: HitPoints; // PV
   // Rodadas restantes até a morte enquanto em agonia. null = timer não definido.

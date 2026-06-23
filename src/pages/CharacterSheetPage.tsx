@@ -1,8 +1,9 @@
 // ui
-import { Box, Button, Flex, Heading } from '@chakra-ui/react';
+import { Box, Button, Flex, Text } from '@chakra-ui/react';
 import { LuArrowLeft } from 'react-icons/lu';
 
 // components
+import { ActionBar } from '@/components/ActionBar';
 import { CharacterDashboard } from '@/components/character/CharacterDashboard';
 
 // contexts
@@ -27,22 +28,23 @@ export const CharacterSheetPage = ({ roster, onBack }: Props) => {
       bg="surface.bg"
       color="fg"
       px={{ base: '1rem', md: '2rem' }}
-      py="1.5rem"
+      pt="0.5rem"
+      pb="6rem"
     >
-      <Flex align="center" gap="0.75rem" mb="1.5rem">
-        <Button
-          size="sm"
-          variant="ghost"
-          colorPalette="purple"
-          onClick={onBack}
-        >
-          <LuArrowLeft />
-          Personagens
-        </Button>
-
-        <Heading size="lg" color="brand.accent" letterSpacing="0.04em">
-          ShadowDark
-        </Heading>
+      <Flex px="1rem" py="0.5rem" mb="1rem" align="center" justify="space-between">
+        <Flex gap="0.5rem" align="center" fontSize="lg">
+          <Text as="a" href="/" color="fg.muted" _hover={{ color: 'fg' }} transition="color 0.2s">
+            ShadowDark
+          </Text>
+          <Text color="fg.subtle">/</Text>
+          <Text as="a" href="/" color="fg.muted" _hover={{ color: 'fg' }} transition="color 0.2s">
+            Personagens
+          </Text>
+          <Text color="fg.subtle">/</Text>
+          <Text color="brand.accent" fontWeight="bold">
+            {activeCharacter.name || 'Sem nome'}
+          </Text>
+        </Flex>
       </Flex>
 
       <CharacterSheetProvider
@@ -65,6 +67,18 @@ export const CharacterSheetPage = ({ roster, onBack }: Props) => {
       >
         <CharacterDashboard />
       </CharacterSheetProvider>
+
+      <ActionBar>
+        <Button
+          variant="outline"
+          colorPalette="purple"
+          flex="1"
+          onClick={onBack}
+        >
+          <LuArrowLeft />
+          Voltar para Personagens
+        </Button>
+      </ActionBar>
     </Box>
   );
 };

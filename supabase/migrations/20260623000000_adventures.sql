@@ -135,3 +135,9 @@ begin
   where id = p_character_id and owner_id = auth.uid();
 end;
 $$;
+
+GRANT ALL ON TABLE public.adventures TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.is_master_of(uuid) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.plays_in(uuid) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.join_adventure(text, uuid) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.leave_adventure(uuid) TO anon, authenticated;

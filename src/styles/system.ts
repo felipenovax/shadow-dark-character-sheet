@@ -5,31 +5,38 @@ const config = defineConfig({
   theme: {
     tokens: {
       colors: {
-        paper: {
-          50: { value: '#faf8f2' },
-          100: { value: '#f4f0e6' },
-          200: { value: '#ece8dd' },
-          300: { value: '#d8d2c2' },
+        purple: {
+          50: { value: '#faf5ff' },
+          100: { value: '#e9d8fd' },
+          200: { value: '#d6bcfa' },
+          300: { value: '#b794f4' },
+          400: { value: '#9f7aea' },
+          500: { value: '#805ad5' },
+          600: { value: '#6b46c1' },
+          700: { value: '#553c9a' },
+          800: { value: '#44337a' },
+          900: { value: '#322659' },
+          950: { value: '#1a1433' },
         },
-        ink: {
-          500: { value: '#3f3a33' },
-          900: { value: '#15130f' },
-        },
-        royal: {
-          500: { value: '#6b4e9e' },
-          600: { value: '#574080' },
-        },
+        darkPurple: {
+          900: { value: '#0e0b16' }, // Fundo principal super escuro com tom roxo
+          800: { value: '#171224' }, // Fundo dos cards (panel)
+          700: { value: '#231b36' }, // Fundo elevado (hover/modais)
+          600: { value: '#33294d' }, // Bordas
+        }
       },
     },
     semanticTokens: {
       colors: {
-        'surface.bg': { value: '{colors.paper.200}' },
-        'surface.panel': { value: '{colors.paper.50}' },
-        'surface.raised': { value: '{colors.paper.100}' },
-        'surface.border': { value: '{colors.paper.300}' },
-        'brand.accent': { value: '{colors.royal.500}' },
-        'brand.accent1': { value: '{colors.ink.500}' },
-        'brand.accent2': { value: '{colors.ink.500}' },
+        'surface.bg': { value: { _light: '#ffffff', _dark: '{colors.darkPurple.900}' } },
+        'surface.panel': { value: { _light: '{colors.purple.50}', _dark: '{colors.darkPurple.800}' } },
+        'surface.raised': { value: { _light: '{colors.purple.100}', _dark: '{colors.darkPurple.700}' } },
+        'surface.border': { value: { _light: '{colors.purple.200}', _dark: '{colors.darkPurple.600}' } },
+        'brand.accent': { value: { _light: '{colors.purple.600}', _dark: '{colors.purple.400}' } },
+        'brand.accent1': { value: { _light: '{colors.purple.700}', _dark: '{colors.purple.300}' } },
+        'brand.accent2': { value: { _light: '{colors.purple.800}', _dark: '{colors.purple.200}' } },
+        'fg': { value: { _light: '{colors.darkPurple.900}', _dark: '{colors.purple.50}' } },
+        'fg.muted': { value: { _light: '{colors.purple.800}', _dark: '{colors.purple.200}' } },
       },
     },
   },
