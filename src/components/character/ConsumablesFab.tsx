@@ -207,12 +207,34 @@ export const ConsumablesFab = () => {
 
         <VStack gap="0.75rem" align="center" alignSelf="flex-end">
           {CONSUMABLES.map((consumable) => {
-            const expiresAt = myExpiresAt(consumable);
-            const remaining = expiresAt ? expiresAt - now : 0;
-            const isLit = remaining > 0;
-            const isWarning = isLit && remaining <= CONSUMABLE_WARNING_MS;
+            // Minha tocha (controla ação, badge e a possibilidade de acender).
+            const myExpires = myExpiresAt(consumable);
+            const myRemaining = myExpires ? myExpires - now : 0;
+            const isMineLit = myRemaining > 0;
+
+            // Tochas acesas da mesa (qualquer um) → aura "acesa" para todos.
+            const tableEntries = shared.filter(
+              (entry) =>
+                entry.consumableId === consumable.id &&
+                entry.expiresAt - now > 0,
+            );
+            const soonest = tableEntries.length
+              ? Math.min(...tableEntries.map((entry) => entry.expiresAt))
+              : null;
+
+            const showLit = isMineLit || tableEntries.length > 0;
+            const visualRemaining = isMineLit
+              ? myRemaining
+              : soonest
+                ? soonest - now
+                : 0;
+            const isWarning =
+              showLit &&
+              visualRemaining > 0 &&
+              visualRemaining <= CONSUMABLE_WARNING_MS;
+
             const available = inventoryQuantity(consumable.inventoryItemId);
-            const isDisabled = !isLit && available <= 0;
+            const isDisabled = !isMineLit && available <= 0;
 
             return (
               <VStack key={consumable.id} gap="0.25rem">
@@ -220,7 +242,7 @@ export const ConsumablesFab = () => {
                   type="button"
                   variant="plain"
                   title={
-                    isLit
+                    isMineLit
                       ? `Apagar ${consumable.name}`
                       : isDisabled
                         ? `Sem ${consumable.name.toLowerCase()}s`
@@ -228,7 +250,7 @@ export const ConsumablesFab = () => {
                   }
                   disabled={isDisabled}
                   onClick={() =>
-                    isLit ? extinguish(consumable) : light(consumable)
+                    isMineLit ? extinguish(consumable) : light(consumable)
                   }
                   boxSize="3.5rem"
                   minW="3.5rem"
@@ -236,17 +258,24 @@ export const ConsumablesFab = () => {
                   borderRadius="full"
                   borderWidth="2px"
                   borderColor={
-                    isWarning ? 'red.400' : isLit ? 'orange.300' : 'surface.border'
+                    isWarning
+                      ? 'red.400'
+                      : showLit
+                        ? 'orange.300'
+                        : 'surface.border'
                   }
                   bg="surface.panel"
                   boxShadow={
                     isWarning
                       ? '0 0 12px var(--chakra-colors-red-400)'
-                      : isLit
+                      : showLit
                         ? '0 0 14px var(--chakra-colors-orange-300)'
                         : 'sm'
                   }
-                  _disabled={{ opacity: 0.4, cursor: 'not-allowed' }}
+                  _disabled={{
+                    opacity: showLit ? 1 : 0.4,
+                    cursor: 'not-allowed',
+                  }}
                   transition="box-shadow 0.2s ease, border-color 0.2s ease"
                 >
                   <Image
@@ -254,11 +283,11 @@ export const ConsumablesFab = () => {
                     alt={consumable.name}
                     boxSize="2rem"
                     objectFit="contain"
-                    filter={isLit ? 'none' : 'grayscale(0.6)'}
+                    filter={showLit ? 'none' : 'grayscale(0.6)'}
                   />
                 </Button>
 
-                {isLit && (
+                {showLit && visualRemaining > 0 && (
                   <Box
                     bg={isWarning ? 'red.500' : 'gray.800'}
                     color="white"
@@ -269,11 +298,11 @@ export const ConsumablesFab = () => {
                     fontWeight="bold"
                     fontFamily="mono"
                   >
-                    {formatRemaining(remaining)}
+                    {formatRemaining(visualRemaining)}
                   </Box>
                 )}
 
-                {!isLit && available > 0 && (
+                {!showLit && available > 0 && (
                   <Text fontSize="0.625rem" color="fg.muted">
                     ×{available}
                   </Text>
