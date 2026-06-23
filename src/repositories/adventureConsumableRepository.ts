@@ -9,6 +9,7 @@ export type SharedConsumable = {
   characterId: string;
   consumableId: string;
   characterName: string;
+  litBy: string;
   expiresAt: number; // epoch ms
 };
 
@@ -18,6 +19,7 @@ type Row = {
   character_id: string;
   consumable_id: string;
   character_name: string;
+  lit_by: string;
   expires_at: string;
 };
 
@@ -27,6 +29,7 @@ export const toShared = (row: Row): SharedConsumable => ({
   characterId: row.character_id,
   consumableId: row.consumable_id,
   characterName: row.character_name,
+  litBy: row.lit_by,
   expiresAt: new Date(row.expires_at).getTime(),
 });
 
@@ -35,7 +38,9 @@ export const fetchActiveConsumables = async (
 ): Promise<SharedConsumable[]> => {
   const { data, error } = await supabase
     .from(TABLE)
-    .select('id, adventure_id, character_id, consumable_id, character_name, expires_at')
+    .select(
+      'id, adventure_id, character_id, consumable_id, character_name, lit_by, expires_at',
+    )
     .eq('adventure_id', adventureId);
 
   if (error) throw error;

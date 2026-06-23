@@ -1,5 +1,8 @@
 // libs
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+// lib
+import { supabase } from '@/lib/supabase';
 
 // ui
 import {
@@ -46,6 +49,21 @@ export const ConsumablesFab = () => {
   const [now, setNow] = useState(() => Date.now());
   const [expiredAlert, setExpiredAlert] = useState<string | null>(null);
   const [adventureId, setAdventureId] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // Expirações já tratadas (chave id:expiresAt) — evita re-disparar a cada tique.
+  const handledRef = useRef<Set<string>>(new Set());
+
+  // Usuário atual (para que só o dono apague a própria tocha na expiração).
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth
+      .getUser()
+      .then(({ data }) => mounted && setCurrentUserId(data.user?.id ?? null));
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Resolve a aventura da ficha aberta (modo compartilhado x solo).
   useEffect(() => {
@@ -61,8 +79,10 @@ export const ConsumablesFab = () => {
   const inAdventure = adventureId !== null;
   const shared = useAdventureConsumables(adventureId);
 
-  const hasLocalActive = character.consumables.length > 0;
-  const hasSharedActive = shared.length > 0;
+  const hasLocalActive = character.consumables.some(
+    (entry) => entry.expiresAt - now > 0,
+  );
+  const hasSharedActive = shared.some((entry) => entry.expiresAt - now > 0);
 
   // Tique de 1s enquanto houver algo aceso (local ou na mesa).
   useEffect(() => {
@@ -72,24 +92,37 @@ export const ConsumablesFab = () => {
     return () => clearInterval(interval);
   }, [hasLocalActive, hasSharedActive]);
 
-  // Expiração: apaga o que zerou e dispara o alerta (cada cliente limpa as suas).
+  // Expiração: trata cada item uma única vez (trava por id:expiresAt).
   useEffect(() => {
+    const handled = handledRef.current;
+
     if (inAdventure) {
       shared.forEach((entry) => {
-        if (entry.characterId !== character.id) return;
         if (entry.expiresAt - now > 0) return;
+        const key = `${entry.id}:${entry.expiresAt}`;
+        if (handled.has(key)) return;
+        handled.add(key);
+
         const consumable = CONSUMABLES.find((c) => c.id === entry.consumableId);
-        void extinguishSharedConsumable({
-          characterId: entry.characterId,
-          consumableId: entry.consumableId,
-        });
         setExpiredAlert(consumable?.name ?? 'Consumível');
+
+        // Só o dono apaga; os demais recebem a remoção via Realtime.
+        if (entry.litBy === currentUserId) {
+          void extinguishSharedConsumable({
+            characterId: entry.characterId,
+            consumableId: entry.consumableId,
+          });
+        }
       });
       return;
     }
 
     character.consumables.forEach((active) => {
       if (active.expiresAt - now > 0) return;
+      const key = `${active.id}:${active.expiresAt}`;
+      if (handled.has(key)) return;
+      handled.add(key);
+
       const consumable = CONSUMABLES.find((c) => c.id === active.id);
       setConsumableTimer(active.id, null);
       requestSave();
@@ -100,10 +133,17 @@ export const ConsumablesFab = () => {
     inAdventure,
     shared,
     character.consumables,
-    character.id,
+    currentUserId,
     setConsumableTimer,
     requestSave,
   ]);
+
+  // O alerta de "apagou" some sozinho após alguns segundos.
+  useEffect(() => {
+    if (!expiredAlert) return;
+    const timeout = setTimeout(() => setExpiredAlert(null), 6000);
+    return () => clearTimeout(timeout);
+  }, [expiredAlert]);
 
   const inventoryQuantity = (inventoryItemId: string): number =>
     character.inventory
