@@ -15,7 +15,7 @@ import { system } from '@/styles/system';
 export const Provider = (props: ColorModeProviderProps) => {
   return (
     <ChakraProvider value={system}>
-      <ColorModeProvider forcedTheme="light" {...props} />
+      <ColorModeProvider defaultTheme="dark" {...props} />
     </ChakraProvider>
   );
 };

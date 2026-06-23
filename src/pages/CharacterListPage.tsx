@@ -1,16 +1,20 @@
-// ui
 import {
+  Badge,
   Box,
   Button,
   Card,
+  Dialog,
   Flex,
   Heading,
   IconButton,
   Image,
+  Portal,
   SimpleGrid,
   Text,
 } from '@chakra-ui/react';
 import { LuLogOut, LuPlus, LuSwords, LuTrash2 } from 'react-icons/lu';
+import { useState, useRef } from 'react';
+import { ActionBar } from '@/components/ActionBar';
 
 // types
 import type { Character } from '@/types/character';
@@ -34,71 +38,139 @@ const CharacterCard = ({
   onDelete: (id: string) => void;
 }) => {
   const initial = (character.name.trim().charAt(0) || '?').toUpperCase();
+  const [isHovered, setIsHovered] = useState(false);
+  const [isLongPressed, setIsLongPressed] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const didLongPressRef = useRef(false);
+
+  const handleTouchStart = () => {
+    didLongPressRef.current = false;
+    timerRef.current = setTimeout(() => {
+      setIsLongPressed(true);
+      didLongPressRef.current = true;
+    }, 2000);
+  };
+
+  const handleTouchEndOrMove = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+  };
+
+  const handleClick = () => {
+    if (didLongPressRef.current) {
+      didLongPressRef.current = false;
+      return;
+    }
+    onSelect(character.id);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    setIsLongPressed(false);
+    handleTouchEndOrMove();
+  };
 
   return (
     <Card.Root
+      position="relative"
+      flexDirection="row"
       bg="surface.panel"
       borderColor="surface.border"
       borderWidth="2px"
-      borderRadius="0.75rem"
+      borderRadius="0.5rem"
+      minH="200px"
       overflow="hidden"
       cursor="pointer"
       transition="border-color 0.15s ease"
       _hover={{ borderColor: 'brand.accent' }}
-      onClick={() => onSelect(character.id)}
+      onClick={handleClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={handleMouseLeave}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEndOrMove}
+      onTouchMove={handleTouchEndOrMove}
     >
-      <Card.Body p="1rem">
-        <Flex gap="0.75rem" align="center">
-          {character.avatar ? (
-            <Image
-              src={character.avatar}
-              alt={character.name}
-              boxSize="3.5rem"
-              borderRadius="0.5rem"
-              objectFit="cover"
-            />
-          ) : (
-            <Flex
-              boxSize="3.5rem"
-              align="center"
-              justify="center"
-              bg="surface.raised"
-              borderRadius="0.5rem"
-            >
-              <Heading size="md" color="brand.accent">
-                {initial}
-              </Heading>
-            </Flex>
-          )}
-
-          <Box flex="1" minW="0">
-            <Text fontWeight="bold" fontSize="1rem" truncate>
-              {character.name || 'Sem nome'}
-            </Text>
-            <Text fontSize="0.75rem" color="fg.muted" truncate>
-              {character.class} • Nível {character.level}
-            </Text>
-            {character.title && (
-              <Text fontSize="0.75rem" color="brand.accent" truncate>
-                {character.title}
-              </Text>
-            )}
-          </Box>
-
-          <IconButton
-            aria-label="Excluir personagem"
-            size="xs"
-            variant="ghost"
-            colorPalette="gray"
-            onClick={(event) => {
-              event.stopPropagation();
-              onDelete(character.id);
-            }}
-          >
-            <LuTrash2 />
-          </IconButton>
+      {character.avatar ? (
+        <Image
+          objectFit="cover"
+          w={{ base: '120px', sm: '150px' }}
+          minW={{ base: '120px', sm: '150px' }}
+          minH="200px"
+          src={character.avatar}
+          alt={character.name}
+        />
+      ) : (
+        <Flex
+          w={{ base: '120px', sm: '150px' }}
+          minW={{ base: '120px', sm: '150px' }}
+          minH="200px"
+          align="center"
+          justify="center"
+          bg="surface.raised"
+        >
+          <Heading size="2xl" color="brand.accent">
+            {initial}
+          </Heading>
         </Flex>
-      </Card.Body>
+      )}
+
+      <Box flex="1" display="flex" flexDirection="column" minW="0">
+        <Card.Body p="1.25rem" flex="1">
+          <Flex justify="space-between" align="flex-start" mb="0.25rem" gap="0.5rem">
+            <Card.Title as="h3" mb="0" truncate>
+              {character.name || 'Sem nome'}
+            </Card.Title>
+            {(isHovered || isLongPressed) && (
+              <IconButton
+                position="absolute"
+                top="0.25rem"
+                right="0.25rem"
+                aria-label="Excluir personagem"
+                size="xs"
+                variant="ghost"
+                color="fg"
+                _hover={{ color: 'red.500', bg: 'transparent' }}
+                _active={{ color: 'red.600', bg: 'transparent' }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onDelete(character.id);
+                }}
+              >
+                <LuTrash2 />
+              </IconButton>
+            )}
+          </Flex>
+
+          <Flex gap="0.5rem" wrap="wrap" mb={character.backstory ? '0.5rem' : '0'}>
+            {character.alignment && (
+              <Badge size="sm" colorPalette="gray" variant="surface">
+                {character.alignment}
+              </Badge>
+            )}
+            {character.ancestry && (
+              <Badge size="sm" colorPalette="purple" variant="surface">
+                {character.ancestry}
+              </Badge>
+            )}
+            {character.background && (
+              <Badge size="sm" colorPalette="blue" variant="surface">
+                {character.background}
+              </Badge>
+            )}
+          </Flex>
+
+          {character.backstory && (
+            <Text lineClamp={4} fontSize="0.875rem" color="fg.muted">
+              {character.backstory}
+            </Text>
+          )}
+        </Card.Body>
+
+        <Card.Footer p="1.25rem" pt="0">
+          <Text fontSize="0.75rem" color="fg.muted" fontWeight="medium" truncate>
+            {character.class} • Nível {character.level}
+          </Text>
+        </Card.Footer>
+      </Box>
     </Card.Root>
   );
 };
@@ -111,53 +183,42 @@ export const CharacterListPage = ({
   onOpenAdventures,
   onSignOut,
 }: Props) => {
+  const [characterToDelete, setCharacterToDelete] = useState<Character | null>(null);
+
   return (
-    <Box
+    <Flex
+      direction="column"
       minH="100vh"
       bg="surface.bg"
       color="fg"
       px={{ base: '1rem', md: '2rem' }}
-      py="1.5rem"
+      pt="0.5rem"
+      pb="1.5rem"
     >
-      <Flex
-        align={{ base: 'stretch', md: 'center' }}
-        justify="space-between"
-        direction={{ base: 'column', md: 'row' }}
-        gap="1rem"
-        mb="1.5rem"
-      >
-        <Heading size="lg" color="brand.accent" letterSpacing="0.04em">
-          ShadowDark
-        </Heading>
-
-        <Flex gap="0.5rem" wrap="wrap">
-          <Button size="sm" colorPalette="purple" onClick={onCreate}>
-            <LuPlus />
-            Novo personagem
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            colorPalette="purple"
-            onClick={onOpenAdventures}
-          >
-            <LuSwords />
-            Aventuras
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            colorPalette="gray"
-            onClick={onSignOut}
-          >
-            <LuLogOut />
-            Sair
-          </Button>
+      <Flex px="1rem" py="0.5rem" mb="1rem" align="center" justify="space-between">
+        <Flex gap="0.5rem" align="center" fontSize="lg">
+          <Text as="span" cursor="pointer" onClick={() => window.location.href = '/'} color="fg.muted" _hover={{ color: 'fg' }} transition="color 0.2s">
+            ShadowDark
+          </Text>
+          <Text color="fg.subtle">/</Text>
+          <Text color="brand.accent" fontWeight="bold">
+            Personagens
+          </Text>
         </Flex>
+
+        <Button
+          variant="ghost"
+          colorPalette="gray"
+          size="sm"
+          onClick={onSignOut}
+        >
+          <LuLogOut />
+          Sair
+        </Button>
       </Flex>
 
       {characters.length === 0 ? (
-        <Flex direction="column" align="center" gap="1rem" py="4rem">
+        <Flex direction="column" align="center" justify="center" flexGrow={1} pb="6rem" gap="1rem">
           <Text color="fg.muted">Você ainda não tem personagens.</Text>
           <Button colorPalette="purple" onClick={onCreate}>
             <LuPlus />
@@ -171,11 +232,67 @@ export const CharacterListPage = ({
               key={character.id}
               character={character}
               onSelect={onSelect}
-              onDelete={onDelete}
+              onDelete={(id) => setCharacterToDelete(characters.find(c => c.id === id) || null)}
             />
           ))}
         </SimpleGrid>
       )}
-    </Box>
+
+      <ActionBar>
+        <Button
+          colorPalette="purple"
+          flex="1"
+          minW="120px"
+          onClick={onCreate}
+        >
+          <LuPlus />
+          Novo Personagem
+        </Button>
+        <Button
+          variant="outline"
+          colorPalette="purple"
+          flex="1"
+          minW="120px"
+          onClick={onOpenAdventures}
+        >
+          <LuSwords />
+          Aventuras
+        </Button>
+      </ActionBar>
+
+      <Dialog.Root open={!!characterToDelete} onOpenChange={(e) => { if (!e.open) setCharacterToDelete(null); }}>
+        <Portal>
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content bg="surface.panel" color="fg" borderColor="surface.border" borderWidth="1px" borderRadius="1rem">
+              <Dialog.Header>
+                <Dialog.Title color="brand.accent">Excluir Personagem</Dialog.Title>
+              </Dialog.Header>
+              <Dialog.Body>
+                <Text>
+                  Tem certeza que deseja banir <strong>{characterToDelete?.name}</strong> para as sombras permanentemente? Esta ação não pode ser desfeita.
+                </Text>
+              </Dialog.Body>
+              <Dialog.Footer>
+                <Button variant="ghost" colorPalette="gray" onClick={() => setCharacterToDelete(null)}>
+                  Cancelar
+                </Button>
+                <Button
+                  colorPalette="red"
+                  onClick={() => {
+                    if (characterToDelete) {
+                      onDelete(characterToDelete.id);
+                      setCharacterToDelete(null);
+                    }
+                  }}
+                >
+                  Excluir
+                </Button>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
+    </Flex>
   );
 };

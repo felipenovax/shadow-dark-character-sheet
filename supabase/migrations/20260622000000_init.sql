@@ -85,3 +85,5 @@ create policy "avatars_delete" on storage.objects
     bucket_id = 'avatars'
     and (storage.foldername(name))[1] = auth.uid()::text
   );
+
+GRANT ALL ON TABLE public.characters TO anon, authenticated;
