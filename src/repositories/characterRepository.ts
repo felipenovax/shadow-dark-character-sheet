@@ -3,6 +3,7 @@ import type { Character } from '@/types/character';
 
 // lib
 import { supabase } from '@/lib/supabase';
+import { getSecureAvatarUrl } from '@/utils/uploadAvatar';
 
 // constants
 import { createDefaultCharacter } from '@/constants/character';
@@ -45,7 +46,13 @@ export const fetchCharacters = async (
 
   if (error) throw error;
 
-  return (data as CharacterRow[]).map((row) => normalizeCharacter(row.data));
+  const characters = (data as CharacterRow[]).map((row) => normalizeCharacter(row.data));
+  return Promise.all(
+    characters.map(async (char) => {
+      if (char.avatar) char.avatar = await getSecureAvatarUrl(char.avatar);
+      return char;
+    })
+  );
 };
 
 export type CharacterLink = { characterId: string; adventureId: string };
@@ -81,7 +88,10 @@ export const fetchCharacterById = async (
   if (error) throw error;
   if (!data) return null;
 
-  return normalizeCharacter((data as CharacterRow).data);
+  const char = normalizeCharacter((data as CharacterRow).data);
+  if (char.avatar) char.avatar = await getSecureAvatarUrl(char.avatar);
+  
+  return char;
 };
 
 // Cria uma ficha nova (owner_id vem do default auth.uid()). Só o dono insere.

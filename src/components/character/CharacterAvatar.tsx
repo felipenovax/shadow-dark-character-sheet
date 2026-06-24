@@ -14,7 +14,7 @@ import {
 import { LuImagePlus, LuTrash2 } from 'react-icons/lu';
 
 // utils
-import { removeAvatar, uploadAvatar } from '@/utils/uploadAvatar';
+import { removeAvatar, uploadAvatar, getSecureAvatarUrl } from '@/utils/uploadAvatar';
 
 type Props = {
   name: string;
@@ -39,6 +39,7 @@ export const CharacterAvatar = ({
 }: Props) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const initial = (name.trim().charAt(0) || '?').toUpperCase();
 
   const handleSelectFile = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -49,8 +50,10 @@ export const CharacterAvatar = ({
 
     setIsUploading(true);
     try {
-      const publicUrl = await uploadAvatar(file, characterId);
-      onChange(publicUrl);
+      const path = await uploadAvatar(file, characterId);
+      const signedUrl = await getSecureAvatarUrl(path);
+      setPreviewUrl(signedUrl);
+      onChange(path);
     } catch {
       // falha de upload não deve quebrar a UI
     } finally {
@@ -64,8 +67,12 @@ export const CharacterAvatar = ({
     } catch {
       // segue limpando a referência mesmo se o objeto já não existir
     }
+    setPreviewUrl(null);
     onChange('');
   };
+
+  // Usa o preview temporário gerado ou cai pro avatar provido via prop
+  const displayAvatar = previewUrl || avatar;
 
   return (
     <Box
@@ -75,9 +82,9 @@ export const CharacterAvatar = ({
       justifyContent={{ base: 'center', md: undefined }}
     >
       <AspectRatio ratio={4 / 5} h="274px" w="220px">
-        {avatar ? (
+        {displayAvatar ? (
           <Image
-            src={avatar}
+            src={displayAvatar}
             alt={`Retrato de ${name || 'personagem'}`}
             objectFit="cover"
             {...sharedFrameStyles}
@@ -111,7 +118,7 @@ export const CharacterAvatar = ({
             Imagem
           </Button>
 
-          {avatar && (
+          {displayAvatar && (
             <IconButton
               aria-label="Remover imagem"
               size="xs"

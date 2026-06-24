@@ -18,6 +18,7 @@ import { AdventuresPage } from '@/pages/AdventuresPage';
 import { AuthPage } from '@/pages/AuthPage';
 import { CharacterListPage } from '@/pages/CharacterListPage';
 import { CharacterSheetPage } from '@/pages/CharacterSheetPage';
+import { CharacterCreationPage } from '@/pages/CharacterCreationPage';
 
 // lib
 import { supabase } from '@/lib/supabase';
@@ -40,9 +41,17 @@ const ListRoute = ({ roster }: { roster: CharacterRoster }) => {
     <CharacterListPage
       characters={roster.ownedCharacters}
       onSelect={(id) => navigate(`/character/${id}`)}
-      onCreate={() => navigate(`/character/${roster.createCharacter()}`)}
+      onCreate={() => navigate(`/characters/create`)}
       onDelete={roster.deleteCharacter}
       onOpenAdventures={() => navigate('/adventures')}
+      onImport={async (characters) => {
+        // Save them sequentially to avoid race conditions on the DB constraints
+        for (const char of characters) {
+          await roster.saveNewCharacter(char);
+        }
+        // Force a page reload to pull fresh data (especially the newly generated Signed URLs)
+        window.location.reload();
+      }}
       onSignOut={signOut}
     />
   );
@@ -119,6 +128,21 @@ const SheetRoute = ({ roster }: { roster: CharacterRoster }) => {
   return <CharacterSheetPage roster={roster} onBack={() => navigate(-1)} />;
 };
 
+const CharacterCreationRoute = ({ roster }: { roster: CharacterRoster }) => {
+  const navigate = useNavigate();
+  return (
+    <CharacterCreationPage
+      onComplete={async (character) => {
+        await roster.saveNewCharacter(character);
+        navigate(`/character/${character.id}`);
+      }}
+      onCancel={() => navigate('/')}
+      onOpenAdventures={() => navigate('/adventures')}
+      onSignOut={signOut}
+    />
+  );
+};
+
 // App autenticado: dados + rotas. Só monta quando há usuário logado.
 const AuthedApp = ({ userId }: { userId: string }) => {
   const roster = useCharacterRoster(userId);
@@ -154,6 +178,7 @@ const AuthedApp = ({ userId }: { userId: string }) => {
         />
         <Route path="/adventures/:id" element={<AdventureDetailRoute />} />
         <Route path="/character/:id" element={<SheetRoute roster={roster} />} />
+        <Route path="/characters/create" element={<CharacterCreationRoute roster={roster} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

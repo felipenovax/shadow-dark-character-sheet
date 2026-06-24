@@ -12,6 +12,7 @@ import {
   Text,
   Alert,
   Link,
+  IconButton,
 } from '@chakra-ui/react';
 
 // lib
@@ -157,8 +158,8 @@ export const AuthPage = () => {
           maxW="24rem"
           boxShadow="xl"
         >
-          <Stack gap="1.5rem">
-            <Stack gap="0.25rem" mb="0.5rem">
+          <Stack gap="2rem">
+            <Stack gap="0.25rem">
               <Heading
                 size="xl"
                 color="brand.accent"
@@ -208,7 +209,8 @@ export const AuthPage = () => {
                   }}
                 />
                 {!isLogin && (
-                  <Button
+                  <IconButton
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                     variant="ghost"
                     size="sm"
                     position="absolute"
@@ -221,7 +223,7 @@ export const AuthPage = () => {
                     tabIndex={-1}
                   >
                     {showPassword ? <FiEye size={18} /> : <FiEyeOff size={18} />}
-                  </Button>
+                  </IconButton>
                 )}
               </Box>
 
@@ -244,7 +246,8 @@ export const AuthPage = () => {
                       setNotice(null);
                     }}
                   />
-                  <Button
+                  <IconButton
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                     variant="ghost"
                     size="sm"
                     position="absolute"
@@ -257,7 +260,7 @@ export const AuthPage = () => {
                     tabIndex={-1}
                   >
                     {showPassword ? <FiEye size={18} /> : <FiEyeOff size={18} />}
-                  </Button>
+                  </IconButton>
                 </Box>
               )}
             </Stack>
