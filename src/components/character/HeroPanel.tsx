@@ -16,6 +16,7 @@ import {
   ALIGNMENT_OPTIONS,
   ANCESTRY_OPTIONS,
   CLASS_OPTIONS,
+  DEITY_OPTIONS,
   getMatchingTitle,
   getXpThreshold,
 } from '@/constants/character';
@@ -36,6 +37,14 @@ export const HeroPanel = () => {
     const alignment = value as Alignment;
     updateField('alignment', alignment);
     updateField('title', getMatchingTitle(character.class, alignment, character.level));
+
+    // Divindade depende do alinhamento: limpa se não pertencer ao novo.
+    const isValidDeity = DEITY_OPTIONS[alignment].some(
+      (deity) => deity.value === character.deity,
+    );
+    if (character.deity && !isValidDeity) {
+      updateField('deity', '');
+    }
   };
 
   const handleLevelChange = (value: number) => {
@@ -158,9 +167,13 @@ export const HeroPanel = () => {
             <Box>
               <StatLabel>Divindade</StatLabel>
               <SheetField
+                type="select"
                 isEditing={isEditing}
                 value={character.deity}
-                placeholder="Divindade"
+                options={[
+                  { value: '', label: 'Nenhuma' },
+                  ...DEITY_OPTIONS[character.alignment],
+                ]}
                 onChange={(value) => updateField('deity', value)}
                 textProps={{ fontSize: '1rem', fontWeight: 'bold' }}
               />

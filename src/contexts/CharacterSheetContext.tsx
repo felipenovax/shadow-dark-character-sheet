@@ -12,6 +12,7 @@ type CharacterUpdaters = Pick<
   | 'updateHitPoints'
   | 'updateCoins'
   | 'addInventoryItem'
+  | 'updateInventoryItem'
   | 'setInventoryQuantity'
   | 'removeInventoryItem'
   | 'consumeInventoryItem'
@@ -22,6 +23,8 @@ type CharacterUpdaters = Pick<
   | 'addTalent'
   | 'updateTalent'
   | 'removeTalent'
+  | 'addSpell'
+  | 'removeSpell'
   | 'saveActiveCharacter'
   | 'requestSave'
 >;

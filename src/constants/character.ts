@@ -170,6 +170,24 @@ export const ALIGNMENT_OPTIONS: { value: Alignment; label: string }[] = [
   { value: 'Chaotic', label: 'Caótico' },
 ];
 
+// Divindades por alinhamento (Shadow Dark). A lista disponível depende do
+// alinhamento do personagem.
+export const DEITY_OPTIONS: Record<Alignment, { value: string; label: string }[]> = {
+  Lawful: [
+    { value: 'Santa Terragnis', label: 'Santa Terragnis' },
+    { value: 'Madeera, a Pactuadora', label: 'Madeera, a Pactuadora' },
+  ],
+  Neutral: [
+    { value: 'Gede', label: 'Gede' },
+    { value: 'Ord', label: 'Ord' },
+  ],
+  Chaotic: [
+    { value: 'Memnon', label: 'Memnon' },
+    { value: 'Ramlaat', label: 'Ramlaat' },
+    { value: 'Shune, a Maléfica', label: 'Shune, a Maléfica' },
+  ],
+};
+
 type ClassTitle = { levelRange: string; title: string };
 
 // Títulos por classe → alinhamento → faixa de nível (Shadow Dark).
@@ -326,6 +344,7 @@ export const createDefaultCharacter = (
     armorClass: 10,
     attacks: [],
     talents: [],
+    spells: [],
     coins: { gold: 0, silver: 0, copper: 0 },
     inventory: [],
     consumables: [],

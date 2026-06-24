@@ -226,22 +226,27 @@ export const useCharacterRoster = (userId: string) => {
   const addInventoryItem = useCallback(
     (item: Omit<InventoryItem, 'quantity'>) => {
       updateActiveCharacter((char) => {
-        // Empilha itens idênticos (mesmo id de catálogo, ou mesmo nome p/ custom).
-        const existingIndex = char.inventory.findIndex((entry) =>
-          item.itemId
-            ? entry.itemId === item.itemId
-            : entry.itemId === null && entry.name === item.name,
-        );
+        // Armas/armaduras são entradas individuais (nome/stats próprios): não empilham.
+        const isQuality = item.category === 'weapon' || item.category === 'armor';
 
-        if (existingIndex >= 0) {
-          return {
-            ...char,
-            inventory: char.inventory.map((entry, index) =>
-              index === existingIndex
-                ? { ...entry, quantity: entry.quantity + 1 }
-                : entry,
-            ),
-          };
+        if (!isQuality) {
+          // Empilha itens idênticos (mesmo id de catálogo, ou mesmo nome p/ custom).
+          const existingIndex = char.inventory.findIndex((entry) =>
+            item.itemId
+              ? entry.itemId === item.itemId && entry.category === undefined
+              : entry.itemId === null && entry.name === item.name,
+          );
+
+          if (existingIndex >= 0) {
+            return {
+              ...char,
+              inventory: char.inventory.map((entry, index) =>
+                index === existingIndex
+                  ? { ...entry, quantity: entry.quantity + 1 }
+                  : entry,
+              ),
+            };
+          }
         }
 
         return {
@@ -249,6 +254,18 @@ export const useCharacterRoster = (userId: string) => {
           inventory: [...char.inventory, { ...item, quantity: 1 }],
         };
       });
+    },
+    [updateActiveCharacter],
+  );
+
+  const updateInventoryItem = useCallback(
+    (index: number, patch: Partial<InventoryItem>) => {
+      updateActiveCharacter((char) => ({
+        ...char,
+        inventory: char.inventory.map((entry, i) =>
+          i === index ? { ...entry, ...patch } : entry,
+        ),
+      }));
     },
     [updateActiveCharacter],
   );
@@ -371,6 +388,27 @@ export const useCharacterRoster = (userId: string) => {
     [updateActiveCharacter],
   );
 
+  const addSpell = useCallback(
+    (spellId: string) => {
+      updateActiveCharacter((char) =>
+        char.spells.includes(spellId)
+          ? char
+          : { ...char, spells: [...char.spells, spellId] },
+      );
+    },
+    [updateActiveCharacter],
+  );
+
+  const removeSpell = useCallback(
+    (spellId: string) => {
+      updateActiveCharacter((char) => ({
+        ...char,
+        spells: char.spells.filter((id) => id !== spellId),
+      }));
+    },
+    [updateActiveCharacter],
+  );
+
   return {
     roster,
     activeCharacter,
@@ -389,6 +427,7 @@ export const useCharacterRoster = (userId: string) => {
     updateHitPoints,
     updateCoins,
     addInventoryItem,
+    updateInventoryItem,
     setInventoryQuantity,
     removeInventoryItem,
     consumeInventoryItem,
@@ -399,6 +438,8 @@ export const useCharacterRoster = (userId: string) => {
     addTalent,
     updateTalent,
     removeTalent,
+    addSpell,
+    removeSpell,
   };
 };
 

@@ -55,6 +55,7 @@ export const CharacterSheetPage = ({ roster, onBack }: Props) => {
         updateHitPoints={roster.updateHitPoints}
         updateCoins={roster.updateCoins}
         addInventoryItem={roster.addInventoryItem}
+        updateInventoryItem={roster.updateInventoryItem}
         setInventoryQuantity={roster.setInventoryQuantity}
         removeInventoryItem={roster.removeInventoryItem}
         consumeInventoryItem={roster.consumeInventoryItem}
@@ -65,6 +66,8 @@ export const CharacterSheetPage = ({ roster, onBack }: Props) => {
         addTalent={roster.addTalent}
         updateTalent={roster.updateTalent}
         removeTalent={roster.removeTalent}
+        addSpell={roster.addSpell}
+        removeSpell={roster.removeSpell}
         saveActiveCharacter={roster.saveActiveCharacter}
         requestSave={roster.requestSave}
       >

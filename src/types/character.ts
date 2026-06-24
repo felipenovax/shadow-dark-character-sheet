@@ -1,3 +1,6 @@
+// types
+import type { ItemCategory, ItemQuality } from '@/constants/items';
+
 export type AbilityKey = 'for' | 'des' | 'con' | 'int' | 'sab' | 'car';
 
 // O modificador NÃO é armazenado — é derivado do score em tempo de render.
@@ -35,11 +38,17 @@ export type Coins = {
 
 // Item carregado. Snapshot autossuficiente (nome/espaços), então não quebra se o
 // catálogo mudar. itemId null = item personalizado (fora do catálogo).
+// Campos de qualidade/stats só são usados por armas e armaduras.
 export type InventoryItem = {
   itemId: string | null;
   name: string;
   slots: number;
   quantity: number;
+  category?: ItemCategory; // 'weapon' | 'armor' (gear/custom omitem)
+  quality?: ItemQuality;
+  damage?: string; // arma: dano efetivo (ex.: 1d8)
+  ac?: string; // armadura: CA efetiva
+  bonus?: number; // arma/armadura: bônus (ex.: +1) para qualidade não-normal
 };
 
 // Consumível aceso: id + instante de expiração (epoch ms). Conta pelo relógio real.
@@ -69,7 +78,8 @@ export type Character = {
   condition: VitalCondition; // estado vital (normal/agonia/estabilizado/morto)
   armorClass: number; // CA
   attacks: Attack[]; // ATAQUES
-  talents: string[]; // TALENTOS / MAGIAS
+  talents: string[]; // TALENTOS (texto livre)
+  spells: string[]; // MAGIAS (ids do catálogo)
   coins: Coins;
   inventory: InventoryItem[]; // itens carregados (catálogo ou personalizados)
   consumables: ActiveConsumable[]; // consumíveis acesos (ex.: tocha)

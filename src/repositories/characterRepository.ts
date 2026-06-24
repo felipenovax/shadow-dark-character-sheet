@@ -24,6 +24,7 @@ export const normalizeCharacter = (character: Character): Character => {
     coins: { ...base.coins, ...character.coins },
     attacks: character.attacks ?? [],
     talents: character.talents ?? [],
+    spells: character.spells ?? [],
     inventory: character.inventory ?? [],
     consumables: character.consumables ?? [],
   };

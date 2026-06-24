@@ -1,12 +1,13 @@
 // libs
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // ui
 import { Box, Flex, IconButton, Input, NativeSelect, Stack, Text } from '@chakra-ui/react';
-import { LuMinus, LuPlus, LuTrash2 } from 'react-icons/lu';
+import { LuPlus } from 'react-icons/lu';
 
 // components
 import { EditableSection } from '@/components/character/EditableSection';
+import { InventoryItemRow } from '@/components/character/InventoryItemRow';
 import { SheetField } from '@/components/ui/SheetField';
 import { StatLabel } from '@/components/ui/StatLabel';
 
@@ -18,7 +19,11 @@ import { getInventorySlotCount, getUsedSlots } from '@/constants/character';
 import {
   CATALOG_BY_CATEGORY,
   getCatalogItem,
+  isQualityItem,
   ITEM_CATEGORY_LABELS,
+  ITEM_QUALITY_LABELS,
+  ITEM_QUALITY_ORDER,
+  type ItemQuality,
 } from '@/constants/items';
 
 export const EquipmentPanel = () => {
@@ -31,6 +36,10 @@ export const EquipmentPanel = () => {
   } = useCharacterSheetContext();
 
   const [selectedId, setSelectedId] = useState('');
+  const [quality, setQuality] = useState<ItemQuality>('normal');
+  const [qualName, setQualName] = useState('');
+  const [qualStat, setQualStat] = useState(''); // dano (arma) ou CA (armadura)
+  const [qualBonus, setQualBonus] = useState('');
   const [customName, setCustomName] = useState('');
   const [customSlots, setCustomSlots] = useState(1);
 
@@ -42,15 +51,49 @@ export const EquipmentPanel = () => {
   const selectedItem = getCatalogItem(selectedId);
   const canAddSelected = !!selectedItem && selectedItem.slots <= free;
   const canAddCustom = customName.trim() !== '' && customSlots > 0 && customSlots <= free;
+  const selectedIsQuality = isQualityItem(selectedItem?.category);
+  const selectedIsWeapon = selectedItem?.category === 'weapon';
+
+  // Prefill nome/stat ao escolher uma arma/armadura.
+  useEffect(() => {
+    if (!selectedItem || !selectedIsQuality) return;
+    setQualName(selectedItem.name);
+    setQualStat(
+      (selectedItem.category === 'weapon'
+        ? selectedItem.damage
+        : selectedItem.ac) ?? '',
+    );
+    setQualBonus('');
+  }, [selectedId]);
 
   const handleAddCatalog = () => {
     if (!selectedItem || selectedItem.slots > free) return;
-    addInventoryItem({
-      itemId: selectedItem.id,
-      name: selectedItem.name,
-      slots: selectedItem.slots,
-    });
+
+    if (selectedIsQuality) {
+      const isNormal = quality === 'normal';
+      const baseStat = selectedIsWeapon ? selectedItem.damage : selectedItem.ac;
+      const stat = isNormal ? baseStat : qualStat.trim() || baseStat;
+
+      addInventoryItem({
+        itemId: selectedItem.id,
+        name: qualName.trim() || selectedItem.name,
+        slots: selectedItem.slots,
+        category: selectedItem.category,
+        quality,
+        damage: selectedIsWeapon ? stat : undefined,
+        ac: selectedIsWeapon ? undefined : stat,
+        bonus: isNormal || qualBonus === '' ? undefined : Number(qualBonus),
+      });
+    } else {
+      addInventoryItem({
+        itemId: selectedItem.id,
+        name: selectedItem.name,
+        slots: selectedItem.slots,
+      });
+    }
+
     setSelectedId('');
+    setQuality('normal');
   };
 
   const handleAddCustom = () => {
@@ -83,63 +126,15 @@ export const EquipmentPanel = () => {
             )}
 
             {character.inventory.map((item, index) => (
-              <Flex key={index} align="center" gap="0.5rem">
-                <Box flex="1">
-                  <Text fontSize="0.875rem" fontWeight="bold">
-                    {item.name}
-                    {item.quantity > 1 && (
-                      <Text as="span" color="fg.muted" fontWeight="normal">
-                        {' '}
-                        ×{item.quantity}
-                      </Text>
-                    )}
-                  </Text>
-                  <Text fontSize="0.6875rem" color="fg.muted">
-                    {item.quantity * item.slots}{' '}
-                    {item.quantity * item.slots === 1 ? 'espaço' : 'espaços'}
-                  </Text>
-                </Box>
-
-                {isEditing && (
-                  <Flex align="center" gap="0.25rem">
-                    <IconButton
-                      aria-label="Diminuir quantidade"
-                      size="2xs"
-                      variant="outline"
-                      colorPalette="gray"
-                      onClick={() =>
-                        setInventoryQuantity(index, item.quantity - 1)
-                      }
-                    >
-                      <LuMinus />
-                    </IconButton>
-                    <Text fontSize="0.875rem" minW="1.25rem" textAlign="center">
-                      {item.quantity}
-                    </Text>
-                    <IconButton
-                      aria-label="Aumentar quantidade"
-                      size="2xs"
-                      variant="outline"
-                      colorPalette="green"
-                      disabled={item.slots > free}
-                      onClick={() =>
-                        setInventoryQuantity(index, item.quantity + 1)
-                      }
-                    >
-                      <LuPlus />
-                    </IconButton>
-                    <IconButton
-                      aria-label="Remover item"
-                      size="2xs"
-                      variant="ghost"
-                      colorPalette="gray"
-                      onClick={() => removeInventoryItem(index)}
-                    >
-                      <LuTrash2 />
-                    </IconButton>
-                  </Flex>
-                )}
-              </Flex>
+              <InventoryItemRow
+                key={index}
+                item={item}
+                index={index}
+                isEditing={isEditing}
+                free={free}
+                onSetQuantity={setInventoryQuantity}
+                onRemove={removeInventoryItem}
+              />
             ))}
           </Stack>
 
@@ -175,6 +170,27 @@ export const EquipmentPanel = () => {
                   </NativeSelect.Field>
                   <NativeSelect.Indicator />
                 </NativeSelect.Root>
+
+                {selectedIsQuality && (
+                  <NativeSelect.Root size="sm" maxW="9rem">
+                    <NativeSelect.Field
+                      value={quality}
+                      bg="surface.raised"
+                      borderColor="surface.border"
+                      onChange={(event) =>
+                        setQuality(event.currentTarget.value as ItemQuality)
+                      }
+                    >
+                      {ITEM_QUALITY_ORDER.map((value) => (
+                        <option key={value} value={value}>
+                          {ITEM_QUALITY_LABELS[value]}
+                        </option>
+                      ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                )}
+
                 <IconButton
                   aria-label="Adicionar item do catálogo"
                   size="sm"
@@ -185,6 +201,42 @@ export const EquipmentPanel = () => {
                   <LuPlus />
                 </IconButton>
               </Flex>
+
+              {selectedIsQuality && (
+                <>
+                  <Input
+                    size="sm"
+                    placeholder="Nome (ex.: Espada Longa Talon)"
+                    value={qualName}
+                    bg="surface.raised"
+                    borderColor="surface.border"
+                    onChange={(event) => setQualName(event.currentTarget.value)}
+                  />
+                  {quality !== 'normal' && (
+                    <Flex gap="0.5rem">
+                      <Input
+                        size="sm"
+                        flex="1"
+                        placeholder={selectedIsWeapon ? 'Dano (ex.: 1d8)' : 'CA'}
+                        value={qualStat}
+                        bg="surface.raised"
+                        borderColor="surface.border"
+                        onChange={(event) => setQualStat(event.currentTarget.value)}
+                      />
+                      <Input
+                        size="sm"
+                        type="number"
+                        maxW="6.5rem"
+                        placeholder="Bônus"
+                        value={qualBonus}
+                        bg="surface.raised"
+                        borderColor="surface.border"
+                        onChange={(event) => setQualBonus(event.currentTarget.value)}
+                      />
+                    </Flex>
+                  )}
+                </>
+              )}
 
               <Flex gap="0.5rem">
                 <Input

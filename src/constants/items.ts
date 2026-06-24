@@ -20,6 +20,21 @@ export const ITEM_CATEGORY_LABELS: Record<ItemCategory, string> = {
   armor: 'Armaduras',
 };
 
+// Qualidade de armas/armaduras. Normal usa os status do catálogo;
+// desgastada/melhorada permitem editar (dano/CA).
+export type ItemQuality = 'worn' | 'normal' | 'improved';
+
+export const ITEM_QUALITY_LABELS: Record<ItemQuality, string> = {
+  worn: 'Desgastada',
+  normal: 'Normal',
+  improved: 'Melhorada',
+};
+
+export const ITEM_QUALITY_ORDER: ItemQuality[] = ['worn', 'normal', 'improved'];
+
+export const isQualityItem = (category?: ItemCategory): boolean =>
+  category === 'weapon' || category === 'armor';
+
 // Equipamentos básicos — todos ocupam 1 espaço (o número entre parênteses é o feixe).
 const GEAR: CatalogItem[] = [
   { id: 'arpeu', name: 'Arpéu', category: 'gear', slots: 1, cost: '1 PO' },
