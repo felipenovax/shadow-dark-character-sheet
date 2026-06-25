@@ -343,7 +343,7 @@ export const ConsumablesFab = () => {
             variant="plain"
             aria-label="Consumíveis"
             onClick={() => setExpanded((value) => !value)}
-            boxSize="3.5rem"
+            boxSize="4.5rem"
             minW="3.5rem"
             p="0"
             borderRadius="full"
@@ -360,7 +360,7 @@ export const ConsumablesFab = () => {
             <Image
               src="/assets/misc/hourglass.png"
               alt="Consumíveis"
-              boxSize="2rem"
+              boxSize="4rem"
               objectFit="contain"
             />
           </Button>

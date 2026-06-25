@@ -68,7 +68,7 @@ export const ConsumableButton = ({
         <Image
           src={consumable.icon}
           alt={consumable.name}
-          boxSize="2rem"
+          boxSize="4rem"
           objectFit="contain"
           filter={showLit ? 'none' : 'grayscale(0.6)'}
         />
