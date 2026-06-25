@@ -1,5 +1,5 @@
 // ui
-import { Box, Grid, Stack } from '@chakra-ui/react';
+import { Box, Grid, Stack, Text } from '@chakra-ui/react';
 
 // components
 import { ConditionBanner } from '@/components/character/ConditionBanner';
@@ -12,12 +12,26 @@ import { StatLabel } from '@/components/ui/StatLabel';
 // contexts
 import { useCharacterSheetContext } from '@/contexts/CharacterSheetContext';
 
+// constants
+import { isEquippableArmor } from '@/constants/items';
+
 // hooks
 import { useVitals } from '@/hooks/useVitals';
 
+// utils
+import { getEquippedAC, getUnarmoredAC } from '@/utils/armorClass';
+
 export const VitalsCard = () => {
-  const { character, updateField } = useCharacterSheetContext();
+  const { character } = useCharacterSheetContext();
   const vitals = useVitals();
+
+  // CA derivada: armadura equipada (se houver) ou desarmado (10 + mod DES).
+  const equippedArmor = character.inventory.find(
+    (item) => item.equipped && isEquippableArmor(item),
+  );
+  const armorClass = equippedArmor
+    ? getEquippedAC(equippedArmor, character.abilities.des.score)
+    : getUnarmoredAC(character.abilities.des.score);
 
   return (
     <EditableSection title="Vitais">
@@ -74,13 +88,9 @@ export const VitalsCard = () => {
 
       <Box>
         <StatLabel>Classe de Armadura</StatLabel>
-        <SheetField
-          type="number"
-          isEditing={isEditing}
-          value={character.armorClass}
-          onChange={(value) => updateField('armorClass', value)}
-          textProps={{ fontSize: '1.25rem', fontWeight: 'bold' }}
-        />
+        <Text fontSize="1.25rem" fontWeight="bold">
+          {armorClass}
+        </Text>
       </Box>
 
       <DeathTimerDialog

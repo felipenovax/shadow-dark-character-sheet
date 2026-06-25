@@ -2,11 +2,21 @@
 import { useEffect, useState } from 'react';
 
 // ui
-import { Box, Flex, IconButton, Input, NativeSelect, Stack, Text } from '@chakra-ui/react';
-import { LuPlus } from 'react-icons/lu';
+import {
+  Box,
+  Button,
+  Flex,
+  Input,
+  NativeSelect,
+  Separator,
+  Stack,
+  Text,
+} from '@chakra-ui/react';
+import { LuCheck, LuPlus } from 'react-icons/lu';
 
 // components
 import { EditableSection } from '@/components/character/EditableSection';
+import { EquipArmorDialog } from '@/components/character/EquipArmorDialog';
 import { InventoryItemRow } from '@/components/character/InventoryItemRow';
 import { SheetField } from '@/components/ui/SheetField';
 import { StatLabel } from '@/components/ui/StatLabel';
@@ -19,6 +29,7 @@ import { getInventorySlotCount, getUsedSlots } from '@/constants/character';
 import {
   CATALOG_BY_CATEGORY,
   getCatalogItem,
+  isEquippableArmor,
   isQualityItem,
   ITEM_CATEGORY_LABELS,
   ITEM_QUALITY_LABELS,
@@ -33,15 +44,23 @@ export const EquipmentPanel = () => {
     addInventoryItem,
     setInventoryQuantity,
     removeInventoryItem,
+    equipArmor,
+    toggleEquipArmor,
+    requestSave,
   } = useCharacterSheetContext();
 
   const [selectedId, setSelectedId] = useState('');
   const [quality, setQuality] = useState<ItemQuality>('normal');
-  const [qualName, setQualName] = useState('');
+  const [nickname, setNickname] = useState(''); // nome dado ao item (opcional)
   const [qualStat, setQualStat] = useState(''); // dano (arma) ou CA (armadura)
   const [qualBonus, setQualBonus] = useState('');
   const [customName, setCustomName] = useState('');
   const [customSlots, setCustomSlots] = useState(1);
+  // Dialog "equipar?" ao adicionar uma armadura.
+  const [armorPrompt, setArmorPrompt] = useState<{
+    index: number;
+    name: string;
+  } | null>(null);
 
   const capacity = getInventorySlotCount(character.abilities.for.score);
   const used = getUsedSlots(character.inventory);
@@ -54,14 +73,16 @@ export const EquipmentPanel = () => {
   const selectedIsQuality = isQualityItem(selectedItem?.category);
   const selectedIsWeapon = selectedItem?.category === 'weapon';
 
-  // Prefill nome/stat ao escolher uma arma/armadura.
+  // Prefill do stat ao escolher uma arma/armadura (o nome dado começa vazio).
   useEffect(() => {
     if (!selectedItem || !selectedIsQuality) return;
-    setQualName(selectedItem.name);
+    setNickname('');
     setQualStat(
-      (selectedItem.category === 'weapon'
-        ? selectedItem.damage
-        : selectedItem.ac) ?? '',
+      selectedItem.category === 'weapon'
+        ? (selectedItem.damage ?? '')
+        : selectedItem.ac !== undefined
+          ? String(selectedItem.ac)
+          : '',
     );
     setQualBonus('');
   }, [selectedId]);
@@ -71,19 +92,47 @@ export const EquipmentPanel = () => {
 
     if (selectedIsQuality) {
       const isNormal = quality === 'normal';
-      const baseStat = selectedIsWeapon ? selectedItem.damage : selectedItem.ac;
-      const stat = isNormal ? baseStat : qualStat.trim() || baseStat;
 
-      addInventoryItem({
-        itemId: selectedItem.id,
-        name: qualName.trim() || selectedItem.name,
-        slots: selectedItem.slots,
-        category: selectedItem.category,
-        quality,
-        damage: selectedIsWeapon ? stat : undefined,
-        ac: selectedIsWeapon ? undefined : stat,
-        bonus: isNormal || qualBonus === '' ? undefined : Number(qualBonus),
-      });
+      if (selectedIsWeapon) {
+        const damage = isNormal
+          ? selectedItem.damage
+          : qualStat.trim() || selectedItem.damage;
+        addInventoryItem({
+          itemId: selectedItem.id,
+          name: selectedItem.name,
+          nickname: nickname.trim() || undefined,
+          slots: selectedItem.slots,
+          category: 'weapon',
+          quality,
+          damage,
+          bonus: isNormal || qualBonus === '' ? undefined : Number(qualBonus),
+        });
+      } else {
+        const editedAc = Number(qualStat);
+        const ac =
+          isNormal || qualStat.trim() === '' || Number.isNaN(editedAc)
+            ? selectedItem.ac
+            : editedAc;
+        addInventoryItem({
+          itemId: selectedItem.id,
+          name: selectedItem.name,
+          nickname: nickname.trim() || undefined,
+          slots: selectedItem.slots,
+          category: 'armor',
+          quality,
+          ac,
+          acAddsDex: selectedItem.acAddsDex,
+          bonus: isNormal || qualBonus === '' ? undefined : Number(qualBonus),
+        });
+
+        // Armadura equipável → pergunta se quer equipar (índice = fim da lista).
+        if (isEquippableArmor({ category: 'armor', ac })) {
+          setArmorPrompt({
+            index: character.inventory.length,
+            name: nickname.trim() || selectedItem.name,
+          });
+        }
+      }
     } else {
       addInventoryItem({
         itemId: selectedItem.id,
@@ -92,13 +141,23 @@ export const EquipmentPanel = () => {
       });
     }
 
+    requestSave();
     setSelectedId('');
     setQuality('normal');
+  };
+
+  const confirmEquip = () => {
+    if (armorPrompt) {
+      equipArmor(armorPrompt.index);
+      requestSave();
+    }
+    setArmorPrompt(null);
   };
 
   const handleAddCustom = () => {
     if (!canAddCustom) return;
     addInventoryItem({ itemId: null, name: customName.trim(), slots: customSlots });
+    requestSave();
     setCustomName('');
     setCustomSlots(1);
   };
@@ -134,18 +193,24 @@ export const EquipmentPanel = () => {
                 free={free}
                 onSetQuantity={setInventoryQuantity}
                 onRemove={removeInventoryItem}
+                onToggleEquip={(i) => {
+                  toggleEquipArmor(i);
+                  requestSave();
+                }}
               />
             ))}
           </Stack>
 
           {isEditing && (
             <Stack
-              gap="0.5rem"
+              gap="1rem"
               borderTopWidth="1px"
               borderColor="surface.border"
-              pt="0.5rem"
+              pt="0.75rem"
             >
-              <Flex gap="0.5rem">
+              <Stack gap="0.5rem">
+                <StatLabel>Do catálogo</StatLabel>
+                <Flex gap="0.5rem">
                 <NativeSelect.Root size="sm" flex="1">
                   <NativeSelect.Field
                     value={selectedId}
@@ -191,26 +256,26 @@ export const EquipmentPanel = () => {
                   </NativeSelect.Root>
                 )}
 
-                <IconButton
-                  aria-label="Adicionar item do catálogo"
+                <Button
                   size="sm"
                   colorPalette="purple"
                   disabled={!canAddSelected}
                   onClick={handleAddCatalog}
                 >
-                  <LuPlus />
-                </IconButton>
+                  <LuCheck />
+                  Salvar
+                </Button>
               </Flex>
 
               {selectedIsQuality && (
                 <>
                   <Input
                     size="sm"
-                    placeholder="Nome (ex.: Espada Longa Talon)"
-                    value={qualName}
+                    placeholder="Nome personalizado (opcional) — ex.: Andúril"
+                    value={nickname}
                     bg="surface.raised"
                     borderColor="surface.border"
-                    onChange={(event) => setQualName(event.currentTarget.value)}
+                    onChange={(event) => setNickname(event.currentTarget.value)}
                   />
                   {quality !== 'normal' && (
                     <Flex gap="0.5rem">
@@ -237,12 +302,23 @@ export const EquipmentPanel = () => {
                   )}
                 </>
               )}
+              </Stack>
 
-              <Flex gap="0.5rem">
+              <Flex align="center" gap="0.75rem">
+                <Separator flex="1" />
+                <Text fontSize="0.75rem" color="fg.muted">
+                  ou
+                </Text>
+                <Separator flex="1" />
+              </Flex>
+
+              <Stack gap="0.5rem">
+                <StatLabel>Item personalizado</StatLabel>
+                <Flex gap="0.5rem">
                 <Input
                   size="sm"
                   flex="1"
-                  placeholder="Item personalizado"
+                  placeholder="Nome do item"
                   value={customName}
                   bg="surface.raised"
                   borderColor="surface.border"
@@ -265,16 +341,17 @@ export const EquipmentPanel = () => {
                   </NativeSelect.Field>
                   <NativeSelect.Indicator />
                 </NativeSelect.Root>
-                <IconButton
-                  aria-label="Adicionar item personalizado"
+                <Button
                   size="sm"
                   colorPalette="purple"
                   disabled={!canAddCustom}
                   onClick={handleAddCustom}
                 >
                   <LuPlus />
-                </IconButton>
-              </Flex>
+                  Adicionar
+                </Button>
+                </Flex>
+              </Stack>
 
               {free <= 0 && (
                 <Text fontSize="0.75rem" color="red.500">
@@ -284,8 +361,8 @@ export const EquipmentPanel = () => {
             </Stack>
           )}
 
-          <Box>
-            <StatLabel>Carga Livre</StatLabel>
+          <Box pt="2rem">
+            <StatLabel mb="0.5rem">Carga Livre</StatLabel>
             <SheetField
               isEditing={isEditing}
               value={character.freeCarry}
@@ -294,6 +371,13 @@ export const EquipmentPanel = () => {
               textProps={{ fontSize: '0.875rem' }}
             />
           </Box>
+
+          <EquipArmorDialog
+            isOpen={armorPrompt !== null}
+            armorName={armorPrompt?.name ?? ''}
+            onConfirm={confirmEquip}
+            onClose={() => setArmorPrompt(null)}
+          />
         </>
       )}
     </EditableSection>

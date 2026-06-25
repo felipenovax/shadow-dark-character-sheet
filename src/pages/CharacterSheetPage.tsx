@@ -58,6 +58,8 @@ export const CharacterSheetPage = ({ roster, onBack }: Props) => {
         updateInventoryItem={roster.updateInventoryItem}
         setInventoryQuantity={roster.setInventoryQuantity}
         removeInventoryItem={roster.removeInventoryItem}
+        equipArmor={roster.equipArmor}
+        toggleEquipArmor={roster.toggleEquipArmor}
         consumeInventoryItem={roster.consumeInventoryItem}
         setConsumableTimer={roster.setConsumableTimer}
         addAttack={roster.addAttack}

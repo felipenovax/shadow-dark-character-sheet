@@ -10,7 +10,8 @@ export type CatalogItem = {
   slots: number;
   cost?: string;
   damage?: string;
-  ac?: string;
+  ac?: number; // CA base (armaduras equipáveis); escudo não usa
+  acAddsDex?: boolean; // soma o modificador de Destreza à CA (couro/cota = true)
   properties?: string;
 };
 
@@ -34,6 +35,12 @@ export const ITEM_QUALITY_ORDER: ItemQuality[] = ['worn', 'normal', 'improved'];
 
 export const isQualityItem = (category?: ItemCategory): boolean =>
   category === 'weapon' || category === 'armor';
+
+// Armadura equipável = categoria armadura com CA base numérica (exclui escudo).
+export const isEquippableArmor = (item: {
+  category?: ItemCategory;
+  ac?: number;
+}): boolean => item.category === 'armor' && typeof item.ac === 'number';
 
 // Equipamentos básicos — todos ocupam 1 espaço (o número entre parênteses é o feixe).
 const GEAR: CatalogItem[] = [
@@ -75,10 +82,10 @@ const WEAPONS: CatalogItem[] = [
 ];
 
 const ARMOR: CatalogItem[] = [
-  { id: 'armadura-de-couro', name: 'Armadura de couro', category: 'armor', slots: 1, cost: '10 PO', ac: '11 + MOD DES' },
-  { id: 'cota-de-malha', name: 'Cota de malha', category: 'armor', slots: 2, cost: '60 PO', ac: '13 + MOD DES', properties: 'DESV em furtividade e natação' },
-  { id: 'armadura-de-placas', name: 'Armadura de placas', category: 'armor', slots: 3, cost: '130 PO', ac: '15', properties: 'DESV em furtividade, não pode nadar' },
-  { id: 'escudo', name: 'Escudo', category: 'armor', slots: 1, cost: '10 PO', ac: '+2', properties: 'Ocupa uma mão' },
+  { id: 'armadura-de-couro', name: 'Armadura de couro', category: 'armor', slots: 1, cost: '10 PO', ac: 11, acAddsDex: true },
+  { id: 'cota-de-malha', name: 'Cota de malha', category: 'armor', slots: 2, cost: '60 PO', ac: 13, acAddsDex: true, properties: 'DESV em furtividade e natação' },
+  { id: 'armadura-de-placas', name: 'Armadura de placas', category: 'armor', slots: 3, cost: '130 PO', ac: 15, acAddsDex: false, properties: 'DESV em furtividade, não pode nadar' },
+  { id: 'escudo', name: 'Escudo', category: 'armor', slots: 1, cost: '10 PO', properties: 'Ocupa uma mão · CA +2' },
 ];
 
 export const ITEM_CATALOG: CatalogItem[] = [...GEAR, ...WEAPONS, ...ARMOR];

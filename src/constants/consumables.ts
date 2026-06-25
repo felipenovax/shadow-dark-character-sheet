@@ -1,12 +1,16 @@
-// Consumíveis com duração em tempo real. A tocha é o primeiro; a estrutura
-// permite adicionar outros (lampião, óleo, etc.) no futuro.
+// Consumíveis com duração em tempo real. A fonte define de onde vem a
+// disponibilidade: um item do inventário (tocha) ou uma magia (luz).
+
+export type ConsumableSource =
+  | { type: 'inventory'; itemId: string } // liga ao item do catálogo (items.ts)
+  | { type: 'spell'; spellId: string }; // liga a uma magia (spells.ts)
 
 export type Consumable = {
   id: string;
   name: string;
   icon: string;
   durationMs: number;
-  inventoryItemId: string; // liga ao item do catálogo de inventário (items.ts)
+  source: ConsumableSource;
 };
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
@@ -20,6 +24,20 @@ export const CONSUMABLES: Consumable[] = [
     name: 'Tocha',
     icon: '/assets/items/torch.png',
     durationMs: ONE_HOUR_MS,
-    inventoryItemId: 'tocha', // id do item no catálogo de inventário (items.ts)
+    source: { type: 'inventory', itemId: 'tocha' },
+  },
+  {
+    id: 'lamp',
+    name: 'Lampião',
+    icon: '/assets/items/lamp.png',
+    durationMs: ONE_HOUR_MS,
+    source: { type: 'inventory', itemId: 'lampiao' },
+  },
+  {
+    id: 'light',
+    name: 'Luz',
+    icon: '/assets/misc/light-orb.png',
+    durationMs: ONE_HOUR_MS,
+    source: { type: 'spell', spellId: 'luz' },
   },
 ];

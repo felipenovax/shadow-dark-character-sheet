@@ -1,12 +1,16 @@
 // ui
-import { Box, Flex, IconButton, Text } from '@chakra-ui/react';
+import { Badge, Box, Flex, IconButton, Text } from '@chakra-ui/react';
 import { LuMinus, LuPlus, LuTrash2 } from 'react-icons/lu';
 
 // types
 import type { InventoryItem } from '@/types/character';
 
 // constants
-import { isQualityItem, ITEM_QUALITY_LABELS } from '@/constants/items';
+import {
+  isEquippableArmor,
+  isQualityItem,
+  ITEM_QUALITY_LABELS,
+} from '@/constants/items';
 
 type Props = {
   item: InventoryItem;
@@ -15,6 +19,7 @@ type Props = {
   free: number;
   onSetQuantity: (index: number, quantity: number) => void;
   onRemove: (index: number) => void;
+  onToggleEquip: (index: number) => void;
 };
 
 const slotsLabel = (slots: number): string =>
@@ -32,15 +37,18 @@ export const InventoryItemRow = ({
   free,
   onSetQuantity,
   onRemove,
+  onToggleEquip,
 }: Props) => {
   const isQuality = isQualityItem(item.category);
   const isWeapon = item.category === 'weapon';
+  const isEquip = isEquippableArmor(item);
 
   // Dano/CA + bônus exibidos ao lado do nome (armas/armaduras).
-  const stat = isWeapon ? item.damage : item.ac;
-  const statText = isQuality
-    ? `${isWeapon ? '' : 'CA '}${stat ?? ''} ${formatBonus(item.bonus)}`.trim()
-    : '';
+  const statText = isWeapon
+    ? `${item.damage ?? ''} ${formatBonus(item.bonus)}`.trim()
+    : item.category === 'armor'
+      ? `CA ${item.ac ?? ''}${item.acAddsDex ? ' + DES' : ''} ${formatBonus(item.bonus)}`.trim()
+      : '';
 
   const subtitle = isQuality
     ? `${item.quality ? `${ITEM_QUALITY_LABELS[item.quality]} • ` : ''}${slotsLabel(item.slots)}`
@@ -48,9 +56,29 @@ export const InventoryItemRow = ({
 
   return (
     <Flex align="center" gap="0.5rem">
-      <Box flex="1" minW="0">
+      <Box
+        flex="1"
+        minW="0"
+        cursor={isEquip ? 'pointer' : undefined}
+        title={isEquip ? (item.equipped ? 'Desequipar' : 'Equipar') : undefined}
+        onClick={isEquip ? () => onToggleEquip(index) : undefined}
+      >
         <Text fontSize="0.875rem" fontWeight="bold">
           {item.name}
+          {item.nickname && (
+            <Badge ml="0.375rem" colorPalette="purple" variant="surface">
+              {item.nickname}
+            </Badge>
+          )}
+          {isEquip && (
+            <Badge
+              ml="0.375rem"
+              colorPalette={item.equipped ? 'green' : 'gray'}
+              variant="surface"
+            >
+              {item.equipped ? 'Equipada' : 'Não equipada'}
+            </Badge>
+          )}
           {statText && (
             <Text as="span" color="brand.accent" ml="0.375rem">
               {statText}

@@ -14,6 +14,8 @@ import type {
 
 // constants
 import { createDefaultCharacter } from '@/constants/character';
+import { canUseWeapon } from '@/constants/proficiency';
+import { isEquippableArmor } from '@/constants/items';
 
 // utils
 import { createId } from '@/utils/createId';
@@ -249,6 +251,31 @@ export const useCharacterRoster = (userId: string) => {
           }
         }
 
+        // Arma que a classe pode usar → cria um ataque vinculado (nome/bônus/dano).
+        const isUsableWeapon =
+          item.category === 'weapon' && canUseWeapon(char.class, item.itemId);
+
+        if (isUsableWeapon) {
+          const attackId = createId();
+          const attackName = item.nickname
+            ? `${item.name} (${item.nickname})`
+            : item.name;
+
+          return {
+            ...char,
+            inventory: [...char.inventory, { ...item, quantity: 1, attackId }],
+            attacks: [
+              ...char.attacks,
+              {
+                id: attackId,
+                name: attackName,
+                bonus: item.bonus ?? 0,
+                damage: item.damage ?? '',
+              },
+            ],
+          };
+        }
+
         return {
           ...char,
           inventory: [...char.inventory, { ...item, quantity: 1 }],
@@ -287,12 +314,72 @@ export const useCharacterRoster = (userId: string) => {
 
   const removeInventoryItem = useCallback(
     (index: number) => {
-      updateActiveCharacter((char) => ({
-        ...char,
-        inventory: char.inventory.filter((_, i) => i !== index),
-      }));
+      updateActiveCharacter((char) => {
+        const removed = char.inventory[index];
+        return {
+          ...char,
+          inventory: char.inventory.filter((_, i) => i !== index),
+          // Remove também o ataque vinculado, se houver.
+          attacks: removed?.attackId
+            ? char.attacks.filter((attack) => attack.id !== removed.attackId)
+            : char.attacks,
+        };
+      });
     },
     [updateActiveCharacter],
+  );
+
+  // Equipa a armadura do índice (no máx. uma) e recalcula a CA.
+  const equipArmor = useCallback(
+    (index: number) => {
+      updateActiveCharacter((char) => {
+        const target = char.inventory[index];
+        if (!target || !isEquippableArmor(target)) return char;
+
+        return {
+          ...char,
+          inventory: char.inventory.map((entry, i) =>
+            isEquippableArmor(entry)
+              ? { ...entry, equipped: i === index }
+              : entry,
+          ),
+        };
+      });
+    },
+    [updateActiveCharacter],
+  );
+
+  const unequipArmor = useCallback(
+    (index: number) => {
+      updateActiveCharacter((char) => {
+        const target = char.inventory[index];
+        if (!target) return char;
+
+        return {
+          ...char,
+          inventory: char.inventory.map((entry, i) =>
+            i === index ? { ...entry, equipped: false } : entry,
+          ),
+        };
+      });
+    },
+    [updateActiveCharacter],
+  );
+
+  const toggleEquipArmor = useCallback(
+    (index: number) => {
+      const current = rosterRef.current;
+      const active = current.characters.find(
+        (char) => char.id === current.activeId,
+      );
+      const item = active?.inventory[index];
+      if (item?.equipped) {
+        unequipArmor(index);
+      } else {
+        equipArmor(index);
+      }
+    },
+    [equipArmor, unequipArmor],
   );
 
   // Consome uma unidade de um item do inventário (por itemId de catálogo).
@@ -430,6 +517,9 @@ export const useCharacterRoster = (userId: string) => {
     updateInventoryItem,
     setInventoryQuantity,
     removeInventoryItem,
+    equipArmor,
+    unequipArmor,
+    toggleEquipArmor,
     consumeInventoryItem,
     setConsumableTimer,
     addAttack,

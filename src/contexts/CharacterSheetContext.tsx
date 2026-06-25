@@ -15,6 +15,8 @@ type CharacterUpdaters = Pick<
   | 'updateInventoryItem'
   | 'setInventoryQuantity'
   | 'removeInventoryItem'
+  | 'equipArmor'
+  | 'toggleEquipArmor'
   | 'consumeInventoryItem'
   | 'setConsumableTimer'
   | 'addAttack'

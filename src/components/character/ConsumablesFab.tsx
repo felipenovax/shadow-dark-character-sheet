@@ -15,6 +15,9 @@ import {
   VStack,
 } from '@chakra-ui/react';
 
+// components
+import { ConsumableButton } from '@/components/character/ConsumableButton';
+
 // contexts
 import { useCharacterSheetContext } from '@/contexts/CharacterSheetContext';
 
@@ -50,6 +53,7 @@ export const ConsumablesFab = () => {
   const [expiredAlert, setExpiredAlert] = useState<string | null>(null);
   const [adventureId, setAdventureId] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
 
   // Expirações já tratadas (chave id:expiresAt) — evita re-disparar a cada tique.
   const handledRef = useRef<Set<string>>(new Set());
@@ -145,10 +149,22 @@ export const ConsumablesFab = () => {
     return () => clearTimeout(timeout);
   }, [expiredAlert]);
 
-  const inventoryQuantity = (inventoryItemId: string): number =>
+  const inventoryQuantity = (itemId: string): number =>
     character.inventory
-      .filter((entry) => entry.itemId === inventoryItemId)
+      .filter((entry) => entry.itemId === itemId)
       .reduce((total, entry) => total + entry.quantity, 0);
+
+  // Quantidade disponível: estoque do inventário, ou null se a fonte é magia.
+  const availableOf = (consumable: Consumable): number | null =>
+    consumable.source.type === 'inventory'
+      ? inventoryQuantity(consumable.source.itemId)
+      : null;
+
+  // O jogador possui a fonte do consumível (tem o item, ou conhece a magia).
+  const hasSource = (consumable: Consumable): boolean =>
+    consumable.source.type === 'inventory'
+      ? inventoryQuantity(consumable.source.itemId) > 0
+      : character.spells.includes(consumable.source.spellId);
 
   const myExpiresAt = (consumable: Consumable): number | null => {
     if (inAdventure) {
@@ -163,8 +179,12 @@ export const ConsumablesFab = () => {
 
   const light = (consumable: Consumable) => {
     const expiresAt = Date.now() + consumable.durationMs;
-    consumeInventoryItem(consumable.inventoryItemId);
-    requestSave();
+
+    // Apenas consumíveis de inventário gastam (a magia de Luz não consome nada).
+    if (consumable.source.type === 'inventory') {
+      consumeInventoryItem(consumable.source.itemId);
+      requestSave();
+    }
 
     if (inAdventure && adventureId) {
       void lightSharedConsumable({
@@ -194,10 +214,56 @@ export const ConsumablesFab = () => {
     }
   };
 
-  // Tochas acesas da mesa (todas), só no modo aventura.
+  // Consumíveis ativos da mesa (todos), só no modo aventura.
   const tableLit = inAdventure
     ? shared.filter((entry) => entry.expiresAt - now > 0)
     : [];
+
+  // Estado visual de um consumível (meu/mesa, contagem, aviso).
+  const buildState = (consumable: Consumable) => {
+    const myExpires = myExpiresAt(consumable);
+    const myRemaining = myExpires ? myExpires - now : 0;
+    const isMineLit = myRemaining > 0;
+
+    const tableEntries = shared.filter(
+      (entry) =>
+        entry.consumableId === consumable.id && entry.expiresAt - now > 0,
+    );
+    const soonest = tableEntries.length
+      ? Math.min(...tableEntries.map((entry) => entry.expiresAt))
+      : null;
+
+    const showLit = isMineLit || tableEntries.length > 0;
+    const visualRemaining = isMineLit
+      ? myRemaining
+      : soonest
+        ? soonest - now
+        : 0;
+    const isWarning =
+      showLit && visualRemaining > 0 && visualRemaining <= CONSUMABLE_WARNING_MS;
+
+    return {
+      isMineLit,
+      showLit,
+      visualRemaining,
+      isWarning,
+      available: availableOf(consumable),
+      disabled: !isMineLit && !hasSource(consumable),
+    };
+  };
+
+  // Mostra os consumíveis que o jogador tem (fonte) ou que estão ativos.
+  const visibleConsumables = CONSUMABLES.filter(
+    (consumable) =>
+      hasSource(consumable) ||
+      buildState(consumable).showLit ||
+      myExpiresAt(consumable) !== null,
+  );
+
+  const activeCount = CONSUMABLES.filter((consumable) => {
+    const expires = myExpiresAt(consumable);
+    return expires !== null && expires - now > 0;
+  }).length;
 
   return (
     <>
@@ -221,7 +287,7 @@ export const ConsumablesFab = () => {
             maxW="14rem"
           >
             <Text fontSize="0.625rem" color="fg.muted" fontWeight="bold">
-              TOCHAS DA MESA
+              NA MESA
             </Text>
             {tableLit.map((entry) => {
               const remaining = entry.expiresAt - now;
@@ -245,112 +311,81 @@ export const ConsumablesFab = () => {
           </VStack>
         )}
 
-        <VStack gap="0.75rem" align="center" alignSelf="flex-end">
-          {CONSUMABLES.map((consumable) => {
-            // Minha tocha (controla ação, badge e a possibilidade de acender).
-            const myExpires = myExpiresAt(consumable);
-            const myRemaining = myExpires ? myExpires - now : 0;
-            const isMineLit = myRemaining > 0;
-
-            // Tochas acesas da mesa (qualquer um) → aura "acesa" para todos.
-            const tableEntries = shared.filter(
-              (entry) =>
-                entry.consumableId === consumable.id &&
-                entry.expiresAt - now > 0,
-            );
-            const soonest = tableEntries.length
-              ? Math.min(...tableEntries.map((entry) => entry.expiresAt))
-              : null;
-
-            const showLit = isMineLit || tableEntries.length > 0;
-            const visualRemaining = isMineLit
-              ? myRemaining
-              : soonest
-                ? soonest - now
-                : 0;
-            const isWarning =
-              showLit &&
-              visualRemaining > 0 &&
-              visualRemaining <= CONSUMABLE_WARNING_MS;
-
-            const available = inventoryQuantity(consumable.inventoryItemId);
-            const isDisabled = !isMineLit && available <= 0;
-
-            return (
-              <VStack key={consumable.id} gap="0.25rem">
-                <Button
-                  type="button"
-                  variant="plain"
-                  title={
-                    isMineLit
-                      ? `Apagar ${consumable.name}`
-                      : isDisabled
-                        ? `Sem ${consumable.name.toLowerCase()}s`
-                        : `Acender ${consumable.name}`
-                  }
-                  disabled={isDisabled}
+        {expanded && visibleConsumables.length > 0 && (
+          <VStack gap="0.75rem" align="center" alignSelf="flex-end">
+            {visibleConsumables.map((consumable) => {
+              const state = buildState(consumable);
+              return (
+                <ConsumableButton
+                  key={consumable.id}
+                  consumable={consumable}
+                  isMineLit={state.isMineLit}
+                  showLit={state.showLit}
+                  isWarning={state.isWarning}
+                  visualRemaining={state.visualRemaining}
+                  available={state.available}
+                  disabled={state.disabled}
                   onClick={() =>
-                    isMineLit ? extinguish(consumable) : light(consumable)
+                    state.isMineLit
+                      ? extinguish(consumable)
+                      : light(consumable)
                   }
-                  boxSize="3.5rem"
-                  minW="3.5rem"
-                  p="0"
-                  borderRadius="full"
-                  borderWidth="2px"
-                  borderColor={
-                    isWarning
-                      ? 'red.400'
-                      : showLit
-                        ? 'orange.300'
-                        : 'surface.border'
-                  }
-                  bg="surface.panel"
-                  boxShadow={
-                    isWarning
-                      ? '0 0 12px var(--chakra-colors-red-400)'
-                      : showLit
-                        ? '0 0 14px var(--chakra-colors-orange-300)'
-                        : 'sm'
-                  }
-                  _disabled={{
-                    opacity: showLit ? 1 : 0.4,
-                    cursor: 'not-allowed',
-                  }}
-                  transition="box-shadow 0.2s ease, border-color 0.2s ease"
-                >
-                  <Image
-                    src={consumable.icon}
-                    alt={consumable.name}
-                    boxSize="2rem"
-                    objectFit="contain"
-                    filter={showLit ? 'none' : 'grayscale(0.6)'}
-                  />
-                </Button>
+                />
+              );
+            })}
+          </VStack>
+        )}
 
-                {showLit && visualRemaining > 0 && (
-                  <Box
-                    bg={isWarning ? 'red.500' : 'gray.800'}
-                    color="white"
-                    borderRadius="full"
-                    px="0.5rem"
-                    py="0.0625rem"
-                    fontSize="0.6875rem"
-                    fontWeight="bold"
-                    fontFamily="mono"
-                  >
-                    {formatRemaining(visualRemaining)}
-                  </Box>
-                )}
+        {/* FAB: ampulheta que expande os consumíveis disponíveis. */}
+        <Box position="relative" alignSelf="flex-end">
+          <Button
+            type="button"
+            variant="plain"
+            aria-label="Consumíveis"
+            onClick={() => setExpanded((value) => !value)}
+            boxSize="3.5rem"
+            minW="3.5rem"
+            p="0"
+            borderRadius="full"
+            borderWidth="2px"
+            borderColor={
+              activeCount > 0 ? 'orange.300' : expanded ? 'brand.accent' : 'surface.border'
+            }
+            bg="surface.panel"
+            boxShadow={
+              activeCount > 0 ? '0 0 14px var(--chakra-colors-orange-300)' : 'md'
+            }
+            transition="box-shadow 0.2s ease, border-color 0.2s ease"
+          >
+            <Image
+              src="/assets/misc/hourglass.png"
+              alt="Consumíveis"
+              boxSize="2rem"
+              objectFit="contain"
+            />
+          </Button>
 
-                {!showLit && available > 0 && (
-                  <Text fontSize="0.625rem" color="fg.muted">
-                    ×{available}
-                  </Text>
-                )}
-              </VStack>
-            );
-          })}
-        </VStack>
+          {activeCount > 0 && (
+            <Box
+              position="absolute"
+              top="-0.25rem"
+              right="-0.25rem"
+              bg="orange.400"
+              color="white"
+              borderRadius="full"
+              minW="1.25rem"
+              h="1.25rem"
+              px="0.25rem"
+              fontSize="0.6875rem"
+              fontWeight="bold"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+            >
+              {activeCount}
+            </Box>
+          )}
+        </Box>
       </VStack>
 
       {expiredAlert && (

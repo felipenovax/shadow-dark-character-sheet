@@ -176,15 +176,18 @@ export const DEITY_OPTIONS: Record<Alignment, { value: string; label: string }[]
   Lawful: [
     { value: 'Santa Terragnis', label: 'Santa Terragnis' },
     { value: 'Madeera, a Pactuadora', label: 'Madeera, a Pactuadora' },
+    { value: 'Os perdidos', label: 'Os perdidos' },
   ],
   Neutral: [
     { value: 'Gede', label: 'Gede' },
     { value: 'Ord', label: 'Ord' },
+    { value: 'Os perdidos', label: 'Os perdidos' },
   ],
   Chaotic: [
     { value: 'Memnon', label: 'Memnon' },
     { value: 'Ramlaat', label: 'Ramlaat' },
     { value: 'Shune, a Maléfica', label: 'Shune, a Maléfica' },
+    { value: 'Os perdidos', label: 'Os perdidos' },
   ],
 };
 
@@ -341,7 +344,6 @@ export const createDefaultCharacter = (
     hitPoints: { current: 6, max: 6 },
     deathTimer: null,
     condition: 'normal',
-    armorClass: 10,
     attacks: [],
     talents: [],
     spells: [],

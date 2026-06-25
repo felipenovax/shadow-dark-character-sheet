@@ -1,5 +1,5 @@
 // ui
-import { Box, Grid, Image, VStack } from '@chakra-ui/react';
+import { Grid, VStack } from '@chakra-ui/react';
 
 // components
 import { AbilitiesGrid } from '@/components/character/AbilitiesGrid';
@@ -29,23 +29,7 @@ export const CharacterDashboard = () => {
           <AttacksPanel />
           <SpellsTalentsPanel />
         </Grid>
-        <Box position="relative">
-          <Image
-            src="/equipment.png"
-            alt="Background"
-            position="absolute"
-            zIndex={10}
-            width="auto"
-            height="70px"
-            top="-20px"
-            right="0"
-            // w="100%"
-            // h="100%"
-            objectFit="cover"
-            // opacity="0.3"
-          />
-          <EquipmentPanel />
-        </Box>
+        <EquipmentPanel />
       </VStack>
     </Grid>
   );

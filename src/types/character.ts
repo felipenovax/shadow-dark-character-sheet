@@ -46,9 +46,13 @@ export type InventoryItem = {
   quantity: number;
   category?: ItemCategory; // 'weapon' | 'armor' (gear/custom omitem)
   quality?: ItemQuality;
+  nickname?: string; // nome dado ao item (ex.: "Talon" em "Espada Longa")
   damage?: string; // arma: dano efetivo (ex.: 1d8)
-  ac?: string; // armadura: CA efetiva
+  ac?: number; // armadura: CA base
+  acAddsDex?: boolean; // armadura: soma o modificador de Destreza à CA
   bonus?: number; // arma/armadura: bônus (ex.: +1) para qualidade não-normal
+  attackId?: string; // id do ataque criado automaticamente (arma usável pela classe)
+  equipped?: boolean; // armadura equipada (no máximo uma)
 };
 
 // Consumível aceso: id + instante de expiração (epoch ms). Conta pelo relógio real.
@@ -76,7 +80,6 @@ export type Character = {
   // Rodadas restantes até a morte enquanto em agonia. null = timer não definido.
   deathTimer: number | null;
   condition: VitalCondition; // estado vital (normal/agonia/estabilizado/morto)
-  armorClass: number; // CA
   attacks: Attack[]; // ATAQUES
   talents: string[]; // TALENTOS (texto livre)
   spells: string[]; // MAGIAS (ids do catálogo)
