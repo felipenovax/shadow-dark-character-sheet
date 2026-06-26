@@ -137,19 +137,13 @@ export const AuthPage = () => {
           backgroundPosition: 'center center'
         }}
       />
-      <Box
-        position="absolute"
-        inset="0"
-        bg={useColorModeValue('rgba(255, 255, 255, 0.65)', 'rgba(14, 11, 22, 0.65)')}
-        zIndex="0"
-      />
 
       <Center minH="100vh" px="1rem" position="relative" zIndex="1">
         <Box
           as="form"
           onSubmit={handleSubmit}
           {...({ noValidate: true } as any)}
-          bg={useColorModeValue('rgba(255, 255, 255, 0.75)', 'rgba(23, 18, 36, 0.15)')}
+          bg="surface.bg"
           backdropFilter="blur(16px)"
           borderColor={useColorModeValue('rgba(0, 0, 0, 0.1)', 'rgba(255, 255, 255, 0.1)')}
           borderWidth="1px"
