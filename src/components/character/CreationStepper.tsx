@@ -12,7 +12,7 @@ type CreationStepperProps = {
 };
 
 export const CreationStepper = ({ steps, activeStep, onStepChange }: CreationStepperProps) => {
-  const itemWidth = 250;
+  const itemWidth = 320;
 
   return (
     <Box w="100%" overflow="hidden" py="1rem" position="relative">
@@ -52,6 +52,7 @@ export const CreationStepper = ({ steps, activeStep, onStepChange }: CreationSte
                   px="0.5rem"
                   cursor={distance <= 1 ? "pointer" : "default"}
                   onClick={() => distance <= 1 && onStepChange(idx)}
+                  css={{ whiteSpace: 'nowrap' }}
                 />
               );
             })}

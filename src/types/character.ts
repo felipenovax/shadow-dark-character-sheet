@@ -94,6 +94,7 @@ export type Character = {
   freeCarry: string; // CARGA LIVRE
   unspentAttributeBonuses: AttributeBonus[]; // PONTOS E RESTRIÇÕES GANHOS EM TALENTOS
   talentRoll?: number[]; // RESULTADO DOS DADOS (para manter na interface)
+  attributeRolls?: Record<AbilityKey, number[]>; // HISTORICO DOS DADOS DOS ATRIBUTOS
 };
 
 export type Roster = {

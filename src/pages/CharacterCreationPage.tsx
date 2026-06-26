@@ -16,6 +16,15 @@ import {
   StepName,
   StepEquipment,
 } from '@/components/character/steps/StepPlaceholders';
+import { StepAttributeRoll } from '@/components/character/steps/StepAttributeRoll';
+import { StepTalentRoll } from '@/components/character/steps/StepTalentRoll';
+
+const StepFor = (props: any) => <StepAttributeRoll attributeKey="for" attributeName="Força" {...props} />;
+const StepDes = (props: any) => <StepAttributeRoll attributeKey="des" attributeName="Destreza" {...props} />;
+const StepCon = (props: any) => <StepAttributeRoll attributeKey="con" attributeName="Constituição" {...props} />;
+const StepInt = (props: any) => <StepAttributeRoll attributeKey="int" attributeName="Inteligência" {...props} />;
+const StepSab = (props: any) => <StepAttributeRoll attributeKey="sab" attributeName="Sabedoria" {...props} />;
+const StepCar = (props: any) => <StepAttributeRoll attributeKey="car" attributeName="Carisma" {...props} />;
 
 type Props = {
   onComplete: (character: Character) => void;
@@ -25,13 +34,15 @@ type Props = {
 };
 
 const STEPS = [
-  { title: 'Escolha a Classe', Component: StepClass },
-  { title: 'Antecedentes', Component: StepBackground },
+  { title: 'Classe', Component: StepClass },
+  { title: 'Talento do Personagem', Component: StepTalentRoll },
   { title: 'Ancestralidade', Component: StepAncestry },
-  { title: 'Atributos', Component: StepAttributes },
-  { title: 'Alinhamento', Component: StepAlignmentDeity },
-  { title: 'Nome', Component: StepName },
-  { title: 'Equipamentos', Component: StepEquipment },
+  { title: 'Força', Component: StepFor },
+  { title: 'Destreza', Component: StepDes },
+  { title: 'Constituição', Component: StepCon },
+  { title: 'Inteligência', Component: StepInt },
+  { title: 'Sabedoria', Component: StepSab },
+  { title: 'Carisma', Component: StepCar },
 ];
 
 export const CharacterCreationPage = ({ onComplete, onCancel, onOpenAdventures, onSignOut }: Props) => {
@@ -51,6 +62,7 @@ export const CharacterCreationPage = ({ onComplete, onCancel, onOpenAdventures, 
   });
 
   const [pendingAction, setPendingAction] = useState<'cancel' | 'adventures' | null>(null);
+  const [showRerollPrompt, setShowRerollPrompt] = useState(false);
 
   // Persist state
   useEffect(() => {
@@ -74,10 +86,46 @@ export const CharacterCreationPage = ({ onComplete, onCancel, onOpenAdventures, 
     if (activeStep < STEPS.length - 1) {
       setActiveStep((prev) => prev + 1);
     } else {
-      clearDraft();
-      onComplete(character);
+      // Estamos no último passo (Carisma)
+      const maxAttr = Math.max(
+        character.abilities.for.score,
+        character.abilities.des.score,
+        character.abilities.con.score,
+        character.abilities.int.score,
+        character.abilities.sab.score,
+        character.abilities.car.score
+      );
+
+      if (maxAttr < 14) {
+        setShowRerollPrompt(true);
+      } else {
+        clearDraft();
+        onComplete(character);
+      }
     }
   }, [activeStep, character, onComplete, clearDraft]);
+
+  const handleAcceptReroll = () => {
+    const resetAbilities = {
+      for: { score: 10 },
+      des: { score: 10 },
+      con: { score: 10 },
+      int: { score: 10 },
+      sab: { score: 10 },
+      car: { score: 10 },
+    };
+    updateField('abilities', resetAbilities);
+    updateField('attributeRolls', undefined);
+    
+    setShowRerollPrompt(false);
+    setActiveStep(3); // Volta para Força (agora no índice 3)
+  };
+
+  const handleDeclineReroll = () => {
+    setShowRerollPrompt(false);
+    clearDraft();
+    onComplete(character);
+  };
 
   const handleActionClick = (action: 'cancel' | 'adventures') => {
     setPendingAction(action);
@@ -163,6 +211,33 @@ export const CharacterCreationPage = ({ onComplete, onCancel, onOpenAdventures, 
           Aventuras
         </Button>
       </ActionBar>
+
+      <Dialog.Root open={showRerollPrompt} onOpenChange={(e) => !e.open && handleDeclineReroll()}>
+        <Portal>
+          <Dialog.Backdrop bg="blackAlpha.700" backdropFilter="blur(4px)" />
+          <Dialog.Positioner>
+            <Dialog.Content bg="surface.panel" color="fg.default" borderRadius="lg" borderWidth="1px" borderColor="brand.accent" boxShadow="xl">
+              <Dialog.Header>
+                <Dialog.Title color="brand.accent">Atributos Baixos Detectados</Dialog.Title>
+              </Dialog.Header>
+              <Dialog.Body>
+                <Text>
+                  Você não obteve nenhum atributo com valor 14 ou mais. De acordo com as regras de Shadowdark, você tem o direito de descartar essas rolagens e rolar novamente todos os atributos.
+                </Text>
+                <Text mt="4" fontWeight="bold">Deseja reiniciar as rolagens a partir da Força?</Text>
+              </Dialog.Body>
+              <Dialog.Footer>
+                <Button variant="ghost" onClick={handleDeclineReroll}>
+                  Manter Atributos
+                </Button>
+                <Button colorPalette="brand" onClick={handleAcceptReroll}>
+                  Sim, Rerolar Tudo
+                </Button>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
 
       <Dialog.Root
         open={pendingAction !== null}
