@@ -9,12 +9,7 @@ import { ActionBar } from '@/components/ActionBar';
 import { CreationStepper } from '@/components/character/CreationStepper';
 import { StepClass } from '@/components/character/steps/StepClass';
 import {
-  StepBackground,
   StepAncestry,
-  StepAttributes,
-  StepAlignmentDeity,
-  StepName,
-  StepEquipment,
 } from '@/components/character/steps/StepPlaceholders';
 import { StepAttributeRoll } from '@/components/character/steps/StepAttributeRoll';
 import { StepTalentRoll } from '@/components/character/steps/StepTalentRoll';
