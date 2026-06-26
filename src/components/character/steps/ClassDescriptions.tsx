@@ -1,5 +1,37 @@
 import { Flex, Text, Box } from '@chakra-ui/react';
 
+export const GuerreiroTalents = [
+  { roll: '2', effect: 'Ganhe Maestria em Armas em um tipo de arma adicional.' },
+  { roll: '3 a 6', effect: '+1 ponto em ataques corpo a corpo e à distância.' },
+  { roll: '7 a 9', effect: '+2 pontos no atributo Força, Destreza ou Constituição.' },
+  { roll: '10 a 11', effect: 'Escolha um tipo de armadura e receba +1 na CA ao usá-la.' },
+  { roll: '12', effect: 'Escolha um talento ou distribua +2 pontos entre os seus atributos.' },
+];
+
+export const LadraoTalents = [
+  { roll: '2', effect: 'Ganhe vantagem nas rolagens de iniciativa.' },
+  { roll: '3 a 6', effect: '+1 nos testes de talento de ladrão (Ladinagem/Furtividade).' },
+  { roll: '7 a 9', effect: '+2 pontos no atributo Destreza ou Carisma.' },
+  { roll: '10 a 11', effect: '+1 ponto em ataques corpo a corpo e à distância.' },
+  { roll: '12', effect: 'Escolha um talento ou distribua +2 pontos entre os seus atributos.' },
+];
+
+export const SacerdoteTalents = [
+  { roll: '2', effect: 'Ganhe vantagem nas rolagens de conjuração para uma magia à sua escolha.' },
+  { roll: '3 a 6', effect: '+1 ponto em ataques mágicos ou corpo a corpo.' },
+  { roll: '7 a 9', effect: '+2 pontos no atributo Força ou Sabedoria.' },
+  { roll: '10 a 11', effect: '+1 nas rolagens de curas mágicas.' },
+  { roll: '12', effect: 'Escolha um talento ou distribua +2 pontos entre os seus atributos.' },
+];
+
+export const MagoTalents = [
+  { roll: '2', effect: 'Aprenda uma nova magia de qualquer círculo que possa lançar.' },
+  { roll: '3 a 6', effect: '+1 nas rolagens de conjuração mágica.' },
+  { roll: '7 a 9', effect: '+2 pontos no atributo Inteligência ou Destreza.' },
+  { roll: '10 a 11', effect: 'Ganhe vantagem para conjurar magias de um elemento/tema específico.' },
+  { roll: '12', effect: 'Escolha um talento ou distribua +2 pontos entre os seus atributos.' },
+];
+
 export const GuerreiroDescription = (
   <Flex direction="column" gap="1rem" fontSize="sm" color="fg.muted">
     <Text>

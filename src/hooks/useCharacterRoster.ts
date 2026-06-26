@@ -47,16 +47,24 @@ export const useCharacterRoster = (userId: string) => {
   }, [roster]);
 
   // ── Bootstrap: sessão anônima + carga inicial da nuvem ────────────────────
+  const refreshList = useCallback(async () => {
+    try {
+      const characters = await fetchCharacters(userId);
+      setRoster((current) => ({ ...current, characters }));
+      setOwnedIds(new Set(characters.map((char) => char.id)));
+      setError(null);
+    } catch {
+      setError('Não foi possível conectar ao servidor. Tente novamente.');
+    }
+  }, [userId]);
+
   useEffect(() => {
     let active = true;
 
     const bootstrap = async () => {
       try {
         const characters = await fetchCharacters(userId);
-
         if (!active) return;
-
-        // Começa na lista (nenhuma ficha aberta).
         setRoster({ characters, activeId: null });
         setOwnedIds(new Set(characters.map((char) => char.id)));
         setIsReady(true);
@@ -521,6 +529,7 @@ export const useCharacterRoster = (userId: string) => {
     createCharacter,
     saveNewCharacter,
     deleteCharacter,
+    refreshList,
     selectCharacter,
     closeActiveCharacter,
     loadCharacter,

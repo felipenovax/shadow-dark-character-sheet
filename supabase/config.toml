@@ -35,3 +35,14 @@ refresh_token_reuse_interval = 10
 enable_signup = true
 enable_confirmations = false
 
+
+[functions.dice-roller]
+enabled = true
+verify_jwt = false
+import_map = "./functions/dice-roller/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/dice-roller/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/dice-roller/*.html" ]

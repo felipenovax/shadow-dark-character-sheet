@@ -10,6 +10,11 @@ export type Ability = {
 
 export type Abilities = Record<AbilityKey, Ability>;
 
+export type AttributeBonus = {
+  points: number;
+  allowedAttributes?: AbilityKey[]; // Omitido = pode gastar em qualquer atributo
+};
+
 export type Alignment = 'Lawful' | 'Neutral' | 'Chaotic';
 
 // Condição vital do personagem (máquina de estados de queda/morte).
@@ -87,6 +92,8 @@ export type Character = {
   inventory: InventoryItem[]; // itens carregados (catálogo ou personalizados)
   consumables: ActiveConsumable[]; // consumíveis acesos (ex.: tocha)
   freeCarry: string; // CARGA LIVRE
+  unspentAttributeBonuses: AttributeBonus[]; // PONTOS E RESTRIÇÕES GANHOS EM TALENTOS
+  talentRoll?: number[]; // RESULTADO DOS DADOS (para manter na interface)
 };
 
 export type Roster = {

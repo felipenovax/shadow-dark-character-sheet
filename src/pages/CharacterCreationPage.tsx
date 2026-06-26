@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Button, Flex, Container, Link, Text, Dialog, Portal } from '@chakra-ui/react';
 import { LuUsers, LuLogOut, LuSwords } from 'react-icons/lu';
 
@@ -35,9 +35,36 @@ const STEPS = [
 ];
 
 export const CharacterCreationPage = ({ onComplete, onCancel, onOpenAdventures, onSignOut }: Props) => {
-  const [character, setCharacter] = useState<Character>(createDefaultCharacter);
-  const [activeStep, setActiveStep] = useState(0);
+  const [character, setCharacter] = useState<Character>(() => {
+    try {
+      const saved = localStorage.getItem('shadowdark_draft_character');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error("Failed to load draft character", e);
+    }
+    return createDefaultCharacter();
+  });
+
+  const [activeStep, setActiveStep] = useState<number>(() => {
+    const saved = localStorage.getItem('shadowdark_draft_step');
+    return saved ? parseInt(saved, 10) : 0;
+  });
+
   const [pendingAction, setPendingAction] = useState<'cancel' | 'adventures' | null>(null);
+
+  // Persist state
+  useEffect(() => {
+    localStorage.setItem('shadowdark_draft_character', JSON.stringify(character));
+  }, [character]);
+
+  useEffect(() => {
+    localStorage.setItem('shadowdark_draft_step', activeStep.toString());
+  }, [activeStep]);
+
+  const clearDraft = useCallback(() => {
+    localStorage.removeItem('shadowdark_draft_character');
+    localStorage.removeItem('shadowdark_draft_step');
+  }, []);
 
   const updateField = useCallback(<K extends keyof Character>(key: K, value: Character[K]) => {
     setCharacter((prev) => ({ ...prev, [key]: value }));
@@ -47,20 +74,17 @@ export const CharacterCreationPage = ({ onComplete, onCancel, onOpenAdventures, 
     if (activeStep < STEPS.length - 1) {
       setActiveStep((prev) => prev + 1);
     } else {
+      clearDraft();
       onComplete(character);
     }
-  }, [activeStep, character, onComplete]);
+  }, [activeStep, character, onComplete, clearDraft]);
 
   const handleActionClick = (action: 'cancel' | 'adventures') => {
-    if (activeStep > 0) {
-      setPendingAction(action);
-    } else {
-      if (action === 'cancel') onCancel();
-      if (action === 'adventures') onOpenAdventures();
-    }
+    setPendingAction(action);
   };
 
   const confirmAction = () => {
+    clearDraft();
     if (pendingAction === 'cancel') onCancel();
     if (pendingAction === 'adventures') onOpenAdventures();
     setPendingAction(null);

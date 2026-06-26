@@ -49,8 +49,8 @@ const ListRoute = ({ roster }: { roster: CharacterRoster }) => {
         for (const char of characters) {
           await roster.saveNewCharacter(char);
         }
-        // Force a page reload to pull fresh data (especially the newly generated Signed URLs)
-        window.location.reload();
+        // Refresh the list locally to convert new paths into Signed URLs without a full page reload
+        await roster.refreshList();
       }}
       onSignOut={signOut}
     />
