@@ -471,7 +471,12 @@ Sempre responder:
 import { useState } from 'react';
 
 // ui
-import { Box, Flex } from '@chakra-ui/react';
+import { Button } from '@chakra-ui/react';
+import { LuPlus } from 'react-icons/lu';
+
+<Button size="sm" leftIcon={<LuPlus />}>
+  Adicionar Ficha
+</Button>;
 
 // services
 import { api } from '@/services/api';
@@ -528,6 +533,31 @@ Durante o desenvolvimento, estabelecemos regras de ouro para o comportamento e d
 - Sempre utilize o componente `<Alert.Root status="error">` do Chakra UI para garantir destaque, ícones nativos e acessibilidade.
 - Ajuste os Alertas para ocuparem a largura total (`w="100%"`), colocando `flex="1"` no conteúdo e removendo o negrito do texto interno para garantir uma leitura fluída.
 - O espaçamento entre os campos, alertas e botões deve ser gerido de forma homogênea pela propriedade `gap` do `<Stack>` pai, sem margens manuais (`mt` ou `mb`) introduzidas no meio.
+
+---
+
+# Tratamento de Assets, Importação e Exportação
+
+Durante a construção do sistema, documentamos padrões importantes de UI e manipulação de arquivos locais e imagens:
+
+## 1. Exportação Resiliente
+Se a aplicação exportar arquivos contendo mídia do usuário, converta e embuta a imagem no formato original (Base64 Data URLs) ao invés de atrelar a exportação a URLs da web. Isso garante uma aplicação 100% contida ("Offline First").
+
+## 2. Importação e Higienização
+- Quando receber um `File` de terceiros (ex: um `.json` enviado pelo usuário para importação), valide a integridade do JSON e do *Payload* de Imagem.
+- Remova `data:` payloads falsos (como páginas de erro HTTP codificadas ou HTML mascarado).
+- Renove os IDs (`createId()`) de objetos importados e extraia as imagens via engenharia reversa (`dataUrlToFile`) para enviá-las ao seu bucket seguro através do back-end.
+
+## 3. Feedback Imediato na Interface (Previews)
+Quando um usuário sobe um avatar para um servidor seguro que responde apenas com um *Caminho Interno* (e não a URL definitiva), a interface não deve exibir um link quebrado ou esperar o recarregamento. 
+**Regra:** Injete uma *Signed URL Temporária* (Preview) de forma imediata na UI. Exemplo:
+
+```tsx
+const path = await uploadAvatar(file, characterId);
+const signedUrl = await getSecureAvatarUrl(path);
+setPreviewUrl(signedUrl); // Atualiza instantaneamente pro usuário ver a foto
+onChange(path); // Salva silenciosamente a rota original no estado geral
+```
 
 ## 4. Tipografia de Ações e Links
 - Textos interativos compostos (ex: "Não tem conta? Cadastre-se") devem separar a pergunta da ação em `<span>`s diferentes.

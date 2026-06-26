@@ -64,3 +64,11 @@ Para gerar a migration salvando em arquivo:
 npx supabase db diff -f nome_da_migracao
 ```
 *(Importante: sempre revise o código gerado pelo diff para garantir que os GRANTS e RLS estão presentes).*
+
+## 5. Regras Adicionais: Storage e Privacidade
+
+Ao longo do desenvolvimento do projeto Shadow Dark, firmamos as seguintes boas práticas para lidar com imagens e propriedades dos usuários:
+
+1. **Buckets Privados por Padrão**: Nunca crie buckets com a propriedade `public: true` se ele armazenar dados dos usuários (ex: Avatares). Utilize `public: false` e escreva políticas rigorosas na tabela `storage.objects`.
+2. **Políticas de Leitura (Signed URLs)**: Se o bucket é privado, o código front-end não deve usar `.getPublicUrl()`. Configure as políticas para permitir que os usuários gerem e consumam **Signed URLs** temporárias.
+3. **Cuidado com Cache do Supabase**: Quando fizer atualizações manuais ou via SQL que alteram a tabela estrutural de `storage.buckets`, os microsserviços do Supabase local (Storage API) podem demorar para atualizar o cache e passar a retornar erros falsos (ex: HTTP 404 Bucket not found). Caso isso aconteça, reinicie o cluster local (`npx supabase stop && npx supabase start`).

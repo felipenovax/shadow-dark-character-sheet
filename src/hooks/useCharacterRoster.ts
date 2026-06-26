@@ -158,6 +158,15 @@ export const useCharacterRoster = (userId: string) => {
     return newCharacter.id;
   }, []);
 
+  const saveNewCharacter = useCallback(async (newCharacter: Character): Promise<void> => {
+    setRoster((current) => ({
+      characters: [...current.characters, newCharacter],
+      activeId: newCharacter.id,
+    }));
+    setOwnedIds((current) => new Set(current).add(newCharacter.id));
+    await insertCharacter(newCharacter);
+  }, []);
+
   const deleteCharacter = useCallback((id: string) => {
     void deleteCharacterRow(id).catch(() => {});
 
@@ -510,6 +519,7 @@ export const useCharacterRoster = (userId: string) => {
     isReady,
     error,
     createCharacter,
+    saveNewCharacter,
     deleteCharacter,
     selectCharacter,
     closeActiveCharacter,

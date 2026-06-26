@@ -30,10 +30,30 @@ export const uploadAvatar = async (
 
   if (error) throw error;
 
-  const { data } = supabase.storage.from(AVATARS_BUCKET).getPublicUrl(path);
+  return path;
+};
 
-  // Cache-buster: força o navegador a recarregar a imagem após uma troca.
-  return `${data.publicUrl}?v=${Date.now()}`;
+export const getSecureAvatarUrl = async (path: string): Promise<string> => {
+  if (!path) return '';
+  if (path.startsWith('http') || path.startsWith('data:')) return path;
+
+  // Se o path salvo no banco for uma URL pública antiga, limpa-o
+  let cleanPath = path;
+  if (path.includes('/storage/v1/object/public/avatars/')) {
+    cleanPath = path.split('/storage/v1/object/public/avatars/')[1];
+  }
+  if (cleanPath.includes('?')) {
+    cleanPath = cleanPath.split('?')[0];
+  }
+
+  const { data, error } = await supabase.storage.from(AVATARS_BUCKET).createSignedUrl(cleanPath, 3600);
+  if (error) {
+    console.error('Falha ao gerar signed URL:', error);
+    return '';
+  }
+  
+  // Cache-buster
+  return `${data.signedUrl}&v=${Date.now()}`;
 };
 
 export const removeAvatar = async (characterId: string): Promise<void> => {
