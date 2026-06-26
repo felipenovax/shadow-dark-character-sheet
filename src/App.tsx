@@ -11,6 +11,7 @@ import {
 
 // ui
 import { Button, Center, Flex, Spinner, Text } from '@chakra-ui/react';
+import { ColorModeButton } from '@/components/ui/color-mode';
 
 // pages
 import { AdventureDetailPage } from '@/pages/AdventureDetailPage';
@@ -196,7 +197,20 @@ export const App = () => {
     );
   }
 
-  if (!user) return <AuthPage />;
-
-  return <AuthedApp userId={user.id} />;
+  return (
+    <>
+      {!user ? <AuthPage /> : <AuthedApp userId={user.id} />}
+      <ColorModeButton
+        position="fixed"
+        bottom="1.5rem"
+        right="1.5rem"
+        zIndex="2000"
+        bg="surface.panel"
+        borderColor="surface.border"
+        borderWidth="1px"
+        boxShadow="md"
+        _hover={{ bg: 'surface.raised' }}
+      />
+    </>
+  );
 };

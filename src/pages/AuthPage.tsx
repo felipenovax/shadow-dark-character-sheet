@@ -14,6 +14,7 @@ import {
   Link,
   IconButton,
 } from '@chakra-ui/react';
+import { useColorModeValue } from '@/components/ui/color-mode';
 
 // lib
 import { supabase } from '@/lib/supabase';
@@ -139,7 +140,7 @@ export const AuthPage = () => {
       <Box
         position="absolute"
         inset="0"
-        bg="rgba(14, 11, 22, 0.65)"
+        bg={useColorModeValue('rgba(255, 255, 255, 0.65)', 'rgba(14, 11, 22, 0.65)')}
         zIndex="0"
       />
 
@@ -148,9 +149,9 @@ export const AuthPage = () => {
           as="form"
           onSubmit={handleSubmit}
           {...({ noValidate: true } as any)}
-          bg="rgba(23, 18, 36, 0.05)"
+          bg={useColorModeValue('rgba(255, 255, 255, 0.75)', 'rgba(23, 18, 36, 0.15)')}
           backdropFilter="blur(16px)"
-          borderColor="rgba(255, 255, 255, 0.1)"
+          borderColor={useColorModeValue('rgba(0, 0, 0, 0.1)', 'rgba(255, 255, 255, 0.1)')}
           borderWidth="1px"
           borderRadius="0.75rem"
           p="1.5rem 2rem"
@@ -169,7 +170,7 @@ export const AuthPage = () => {
                 ShadowDark
               </Heading>
 
-              <Text color="white" fontSize="0.875rem" textAlign="center">
+              <Text color="fg.muted" fontSize="0.875rem" textAlign="center">
                 {isLogin ? 'Entre na sua conta' : 'Crie a sua conta Agora!'}
               </Text>
             </Stack>
@@ -181,9 +182,10 @@ export const AuthPage = () => {
                 value={email}
                 required
                 autoComplete="email"
-                bg="rgba(14, 11, 22, 0.5)"
+                bg="surface.raised"
+                color="fg"
                 borderColor="surface.border"
-                _focus={{ bg: 'rgba(14, 11, 22, 0.8)' }}
+                _focus={{ bg: 'surface.bg' }}
                 onChange={(event) => {
                   setEmail(event.currentTarget.value);
                   setError(null);
@@ -198,9 +200,10 @@ export const AuthPage = () => {
                   required
                   minLength={6}
                   autoComplete={isLogin ? 'current-password' : 'new-password'}
-                  bg="rgba(14, 11, 22, 0.5)"
+                  bg="surface.raised"
+                  color="fg"
                   borderColor="surface.border"
-                  _focus={{ bg: 'rgba(14, 11, 22, 0.8)' }}
+                  _focus={{ bg: 'surface.bg' }}
                   pr={!isLogin ? '4.5rem' : undefined}
                   onChange={(event) => {
                     setPassword(event.currentTarget.value);
@@ -218,7 +221,7 @@ export const AuthPage = () => {
                     top="50%"
                     transform="translateY(-50%)"
                     color="fg.muted"
-                    _hover={{ color: 'white', bg: 'transparent' }}
+                    _hover={{ color: 'fg', bg: 'transparent' }}
                     onClick={() => setShowPassword(!showPassword)}
                     tabIndex={-1}
                   >
@@ -236,9 +239,10 @@ export const AuthPage = () => {
                     required
                     minLength={6}
                     autoComplete="new-password"
-                    bg="rgba(14, 11, 22, 0.5)"
+                    bg="surface.raised"
+                    color="fg"
                     borderColor="surface.border"
-                    _focus={{ bg: 'rgba(14, 11, 22, 0.8)' }}
+                    _focus={{ bg: 'surface.bg' }}
                     pr="4.5rem"
                     onChange={(event) => {
                       setConfirmPassword(event.currentTarget.value);
@@ -255,7 +259,7 @@ export const AuthPage = () => {
                     top="50%"
                     transform="translateY(-50%)"
                     color="fg.muted"
-                    _hover={{ color: 'white', bg: 'transparent' }}
+                    _hover={{ color: 'fg', bg: 'transparent' }}
                     onClick={() => setShowPassword(!showPassword)}
                     tabIndex={-1}
                   >
@@ -277,7 +281,7 @@ export const AuthPage = () => {
             )}
 
             {notice && (
-              <Text color="green.600" fontSize="0.8125rem">
+              <Text color={useColorModeValue('green.600', 'green.300')} fontSize="0.8125rem">
                 {notice}
               </Text>
             )}
@@ -294,7 +298,7 @@ export const AuthPage = () => {
             </Button>
 
             <Stack align="center" gap="0.75rem" mt="0.5rem">
-              <Text color="white" fontSize="0.875rem">
+              <Text color="fg.muted" fontSize="0.875rem">
                 {isLogin ? (
                   <>
                     <Text as="span" fontWeight="normal" mr="0.25rem">Não tem conta?</Text>
@@ -314,7 +318,7 @@ export const AuthPage = () => {
                   fontSize="0.8125rem"
                   fontWeight="normal"
                   cursor="pointer"
-                  _hover={{ color: 'white', textDecoration: 'underline' }}
+                  _hover={{ color: 'fg', textDecoration: 'underline' }}
                 >
                   Esqueci a minha senha
                 </Link>

@@ -1,5 +1,6 @@
 import { Box, Center, Flex } from '@chakra-ui/react';
 import { useState, useRef, useEffect } from 'react';
+import { useColorModeValue } from '@/components/ui/color-mode';
 
 type Props = {
   children: React.ReactNode;
@@ -37,6 +38,9 @@ export const ActionBar = ({ children }: Props) => {
     };
   }, [isOpen]);
 
+  const bg = useColorModeValue('rgba(255, 255, 255, 0.85)', 'rgba(27, 22, 38, 0.85)');
+  const shadow = useColorModeValue('0 -10px 40px rgba(0, 0, 0, 0.10)', '0 -10px 40px rgba(0, 0, 0, 0.6)');
+
   return (
     <Box
       position="fixed"
@@ -50,7 +54,7 @@ export const ActionBar = ({ children }: Props) => {
       ref={barRef}
     >
       <Box
-        bg="rgba(23, 18, 36, 0.85)"
+        bg={bg}
         backdropFilter="blur(16px)"
         borderColor="surface.border"
         borderWidth="1px"
@@ -59,7 +63,7 @@ export const ActionBar = ({ children }: Props) => {
         p="1rem 1.5rem 0.75rem 1.5rem"
         w="90vw"
         maxW="30rem"
-        boxShadow="0 -10px 40px rgba(0, 0, 0, 0.5)"
+        boxShadow={shadow}
         position="relative"
       >
         {/* Handle for touch interactions */}
@@ -75,7 +79,7 @@ export const ActionBar = ({ children }: Props) => {
           <Box w="3rem" h="0.25rem" bg="surface.border" borderRadius="full" />
         </Center>
 
-        <Flex gap="0.75rem" justify="center" wrap="wrap" mt="0.5rem">
+        <Flex gap="0.75rem" justify="center" wrap="wrap" mt="0.5rem" align="center">
           {children}
         </Flex>
       </Box>
