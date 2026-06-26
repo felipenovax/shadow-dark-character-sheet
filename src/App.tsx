@@ -203,7 +203,7 @@ export const App = () => {
       <ColorModeButton
         position="fixed"
         bottom="1.5rem"
-        right="1.5rem"
+        left="1.5rem"
         zIndex="2000"
         bg="surface.panel"
         borderColor="surface.border"
