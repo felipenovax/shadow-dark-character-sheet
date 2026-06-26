@@ -14,7 +14,7 @@ import type {
 
 // constants
 import { createDefaultCharacter } from '@/constants/character';
-import { canUseWeapon } from '@/constants/proficiency';
+import { canUseArmor, canUseWeapon } from '@/constants/proficiency';
 import { isEquippableArmor } from '@/constants/items';
 
 // utils
@@ -334,7 +334,14 @@ export const useCharacterRoster = (userId: string) => {
     (index: number) => {
       updateActiveCharacter((char) => {
         const target = char.inventory[index];
-        if (!target || !isEquippableArmor(target)) return char;
+        // Só equipa armadura equipável e permitida para a classe.
+        if (
+          !target ||
+          !isEquippableArmor(target) ||
+          !canUseArmor(char.class, target.itemId)
+        ) {
+          return char;
+        }
 
         return {
           ...char,

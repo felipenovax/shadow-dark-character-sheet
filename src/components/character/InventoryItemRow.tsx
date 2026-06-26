@@ -6,17 +6,14 @@ import { LuMinus, LuPlus, LuTrash2 } from 'react-icons/lu';
 import type { InventoryItem } from '@/types/character';
 
 // constants
-import {
-  isEquippableArmor,
-  isQualityItem,
-  ITEM_QUALITY_LABELS,
-} from '@/constants/items';
+import { isQualityItem, ITEM_QUALITY_LABELS } from '@/constants/items';
 
 type Props = {
   item: InventoryItem;
   index: number;
   isEditing: boolean;
   free: number;
+  canEquip: boolean; // armadura equipável e permitida para a classe
   onSetQuantity: (index: number, quantity: number) => void;
   onRemove: (index: number) => void;
   onToggleEquip: (index: number) => void;
@@ -35,13 +32,15 @@ export const InventoryItemRow = ({
   index,
   isEditing,
   free,
+  canEquip,
   onSetQuantity,
   onRemove,
   onToggleEquip,
 }: Props) => {
   const isQuality = isQualityItem(item.category);
   const isWeapon = item.category === 'weapon';
-  const isEquip = isEquippableArmor(item);
+  // Mostra/equipa quando a classe pode usar; mantém visível se já equipada.
+  const isEquip = canEquip || !!item.equipped;
 
   // Dano/CA + bônus exibidos ao lado do nome (armas/armaduras).
   const statText = isWeapon

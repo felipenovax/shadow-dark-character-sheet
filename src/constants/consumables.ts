@@ -11,6 +11,7 @@ export type Consumable = {
   icon: string;
   durationMs: number;
   source: ConsumableSource;
+  sfx?: string; // efeito sonoro tocado ao ativar
 };
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
@@ -25,6 +26,7 @@ export const CONSUMABLES: Consumable[] = [
     icon: '/assets/items/torch.png',
     durationMs: ONE_HOUR_MS,
     source: { type: 'inventory', itemId: 'tocha' },
+    sfx: '/assets/sfx/torch-sfx.mp3',
   },
   {
     id: 'lamp',
@@ -32,6 +34,7 @@ export const CONSUMABLES: Consumable[] = [
     icon: '/assets/items/lamp.png',
     durationMs: ONE_HOUR_MS,
     source: { type: 'inventory', itemId: 'lampiao' },
+    sfx: '/assets/sfx/torch-sfx.mp3',
   },
   {
     id: 'light',
@@ -39,5 +42,6 @@ export const CONSUMABLES: Consumable[] = [
     icon: '/assets/misc/light-orb.png',
     durationMs: ONE_HOUR_MS,
     source: { type: 'spell', spellId: 'luz' },
+    sfx: '/assets/sfx/light-sfx.mp3',
   },
 ];

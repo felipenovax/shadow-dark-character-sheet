@@ -2,7 +2,7 @@
 import type { ReactNode } from 'react';
 
 // ui
-import { Card } from '@chakra-ui/react';
+import { Box, Card } from '@chakra-ui/react';
 
 // components
 import { StatLabel } from '@/components/ui/StatLabel';
@@ -28,13 +28,18 @@ export const SectionCard = ({ title, action, children }: Props) => {
         {hasHeader && (
           <Card.Header
             p="0"
+            position="relative"
             display="flex"
             alignItems="center"
-            justifyContent="space-between"
-            gap="0.75rem"
+            justifyContent="center"
+            minH="1.75rem"
           >
             {title && <StatLabel>{title}</StatLabel>}
-            {action}
+            {action && (
+              <Box position="absolute" right="0" top="50%" transform="translateY(-50%)">
+                {action}
+              </Box>
+            )}
           </Card.Header>
         )}
 

@@ -7,7 +7,6 @@ import {
   Button,
   Flex,
   IconButton,
-  NativeSelect,
   Stack,
   Text,
   Textarea,
@@ -16,6 +15,7 @@ import { LuPlus, LuTrash2 } from 'react-icons/lu';
 
 // components
 import { EditableSection } from '@/components/character/EditableSection';
+import { SpellPickerDialog } from '@/components/character/SpellPickerDialog';
 import { StatLabel } from '@/components/ui/StatLabel';
 
 // contexts
@@ -40,7 +40,12 @@ export const SpellsTalentsPanel = () => {
   } = useCharacterSheetContext();
   const { talents, spells } = character;
 
-  const [selectedSpellId, setSelectedSpellId] = useState('');
+  const [isSpellDialogOpen, setSpellDialogOpen] = useState(false);
+  // Magia com a descrição aberta (apenas uma por vez).
+  const [openSpellId, setOpenSpellId] = useState<string | null>(null);
+
+  const toggleSpellDetails = (id: string) =>
+    setOpenSpellId((current) => (current === id ? null : id));
 
   const isCaster = getSpellClass(character.class) !== null;
   const knownSpells = spells.map((id) => getSpell(id)).filter(Boolean);
@@ -51,10 +56,9 @@ export const SpellsTalentsPanel = () => {
 
   const isEmpty = talents.length === 0 && spells.length === 0;
 
-  const handleAddSpell = () => {
-    if (!selectedSpellId) return;
-    addSpell(selectedSpellId);
-    setSelectedSpellId('');
+  const handleAddSpell = (id: string) => {
+    addSpell(id);
+    setSpellDialogOpen(false);
   };
 
   return (
@@ -138,9 +142,31 @@ export const SpellsTalentsPanel = () => {
                           Grau {spell.tier} • {formatSpellClasses(spell.classes)}{' '}
                           • {spell.duration} • {spell.range}
                         </Text>
-                        <Text fontSize="0.8125rem" color="fg.muted" mt="0.125rem">
-                          {spell.description}
-                        </Text>
+
+                        <Button
+                          size="xs"
+                          variant="plain"
+                          colorPalette="purple"
+                          p="0"
+                          h="auto"
+                          mt="0.125rem"
+                          fontSize="0.6875rem"
+                          onClick={() => toggleSpellDetails(spell.id)}
+                        >
+                          {openSpellId === spell.id
+                            ? 'Ocultar detalhes'
+                            : 'Ver detalhes'}
+                        </Button>
+
+                        {openSpellId === spell.id && (
+                          <Text
+                            fontSize="0.8125rem"
+                            color="fg.muted"
+                            mt="0.25rem"
+                          >
+                            {spell.description}
+                          </Text>
+                        )}
                       </Box>
 
                       {isEditing && (
@@ -165,42 +191,26 @@ export const SpellsTalentsPanel = () => {
               )}
 
               {isEditing && isCaster && (
-                <Flex gap="0.5rem">
-                  <NativeSelect.Root size="sm" flex="1">
-                    <NativeSelect.Field
-                      value={selectedSpellId}
-                      bg="surface.raised"
-                      borderColor="surface.border"
-                      onChange={(event) =>
-                        setSelectedSpellId(event.currentTarget.value)
-                      }
-                    >
-                      <option value="">
-                        {selectableSpells.length > 0
-                          ? 'Escolha uma magia…'
-                          : 'Nenhuma magia disponível'}
-                      </option>
-                      {selectableSpells.map((spell) => (
-                        <option key={spell.id} value={spell.id}>
-                          {spell.name} — Grau {spell.tier}
-                        </option>
-                      ))}
-                    </NativeSelect.Field>
-                    <NativeSelect.Indicator />
-                  </NativeSelect.Root>
-                  <IconButton
-                    aria-label="Adicionar magia"
-                    size="sm"
-                    colorPalette="purple"
-                    disabled={!selectedSpellId}
-                    onClick={handleAddSpell}
-                  >
-                    <LuPlus />
-                  </IconButton>
-                </Flex>
+                <Button
+                  size="xs"
+                  variant="outline"
+                  colorPalette="purple"
+                  alignSelf="flex-start"
+                  onClick={() => setSpellDialogOpen(true)}
+                >
+                  <LuPlus />
+                  Magia
+                </Button>
               )}
             </Stack>
           )}
+
+          <SpellPickerDialog
+            isOpen={isSpellDialogOpen}
+            spells={selectableSpells}
+            onConfirm={handleAddSpell}
+            onClose={() => setSpellDialogOpen(false)}
+          />
         </Stack>
       )}
     </EditableSection>

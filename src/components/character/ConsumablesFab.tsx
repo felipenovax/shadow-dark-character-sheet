@@ -180,6 +180,11 @@ export const ConsumablesFab = () => {
   const light = (consumable: Consumable) => {
     const expiresAt = Date.now() + consumable.durationMs;
 
+    // Efeito sonoro ao ativar (ignora rejeição de autoplay do navegador).
+    if (consumable.sfx) {
+      void new Audio(consumable.sfx).play().catch(() => {});
+    }
+
     // Apenas consumíveis de inventário gastam (a magia de Luz não consome nada).
     if (consumable.source.type === 'inventory') {
       consumeInventoryItem(consumable.source.itemId);

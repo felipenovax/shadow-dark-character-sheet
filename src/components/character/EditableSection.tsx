@@ -3,7 +3,7 @@ import { useState, type ReactNode } from 'react';
 
 // ui
 import { Flex, IconButton } from '@chakra-ui/react';
-import { LuCheck, LuPencil } from 'react-icons/lu';
+import { LuPencil, LuSave } from 'react-icons/lu';
 
 // components
 import { SectionCard } from '@/components/ui/SectionCard';
@@ -54,7 +54,7 @@ export const EditableSection = ({ title, action, children }: Props) => {
         loading={isSaving}
         onClick={handleToggle}
       >
-        {isEditing ? <LuCheck /> : <LuPencil />}
+        {isEditing ? <LuSave /> : <LuPencil />}
       </IconButton>
     </Flex>
   );

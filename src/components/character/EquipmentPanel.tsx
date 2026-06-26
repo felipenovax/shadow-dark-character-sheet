@@ -36,6 +36,7 @@ import {
   ITEM_QUALITY_ORDER,
   type ItemQuality,
 } from '@/constants/items';
+import { canUseArmor } from '@/constants/proficiency';
 
 export const EquipmentPanel = () => {
   const {
@@ -125,8 +126,11 @@ export const EquipmentPanel = () => {
           bonus: isNormal || qualBonus === '' ? undefined : Number(qualBonus),
         });
 
-        // Armadura equipável → pergunta se quer equipar (índice = fim da lista).
-        if (isEquippableArmor({ category: 'armor', ac })) {
+        // Armadura equipável E permitida para a classe → pergunta se quer equipar.
+        if (
+          isEquippableArmor({ category: 'armor', ac }) &&
+          canUseArmor(character.class, selectedItem.id)
+        ) {
           setArmorPrompt({
             index: character.inventory.length,
             name: nickname.trim() || selectedItem.name,
@@ -191,6 +195,10 @@ export const EquipmentPanel = () => {
                 index={index}
                 isEditing={isEditing}
                 free={free}
+                canEquip={
+                  isEquippableArmor(item) &&
+                  canUseArmor(character.class, item.itemId)
+                }
                 onSetQuantity={setInventoryQuantity}
                 onRemove={removeInventoryItem}
                 onToggleEquip={(i) => {
